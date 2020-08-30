@@ -14,12 +14,22 @@ Setup:
 	; clear WRAM variables
 	; etc.
 
-Game:
 	call WaitVBlank		; wait for VBlank before disabling screen in
-				; in order to load in tiles
+				; in order to perform setup / load in tiles
 	ld hl, rLCDC
 	res 7, [hl]		; disable screen
 
+	; clear nintendo logo from VRAM
+	ld hl, $9900
+	ld b, $9900 - $9930
+	ld a, $00
+.ninLoop
+	ld [hl], a
+	inc hl
+	dec b
+	jr nz, .ninLoop
+
+Game:
 	call loadGameTiles
 	call setupGame
 
