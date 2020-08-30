@@ -13,5 +13,22 @@ SECTION "Main", ROM0
 Setup:
 	; clear WRAM variables
 	; etc.
-	jr Setup
+
+Game:
+	call WaitVBlank		; wait for VBlank before disabling screen in
+				; in order to load in tiles
+	ld hl, rLCDC
+	res 7, [hl]		; disable screen
+
+	call loadGameTiles
+	call setupGame
+
+	ld hl, rBGP
+	ld [hl], %11100100	; setup BG palette
+
+	ld hl, rLCDC
+	set 7, [hl]		; enable screen
+
+.gameLoop
+	jr .gameLoop
 
