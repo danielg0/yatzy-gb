@@ -11,6 +11,9 @@ EntryPoint:
 SECTION "Main", ROM0
 
 Setup:
+	call RNGSeed		; perform before clearing WRAM variables so
+				; they can be used as a seed
+
 	; clear WRAM variables
 	; etc.
 
