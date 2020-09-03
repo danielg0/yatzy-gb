@@ -29,6 +29,9 @@ loadGameTiles::
 
 ; Perform all pre-game, post-load setup (ie. setting values in bg map)
 setupGame::
+	; zero out dice variables
+	call InitDice
+
 	; setup some test text - replace this
 	ld de, r_str_test
 	ld hl, _SCRN0 + 32 + 2
@@ -48,6 +51,8 @@ setupGame::
 	ld [hl], CURSOR_MAX
 	ld a, CURSOR_MIN
 	call updateCursor
+
+	call RollDice
 
 	ret
 
