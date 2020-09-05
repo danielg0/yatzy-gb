@@ -34,6 +34,7 @@ Setup:
 
 Game:
 	call loadGameTiles
+	call loadGameText
 	call setupGame
 
 	ld hl, rBGP

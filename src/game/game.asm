@@ -3,6 +3,12 @@ INCLUDE "hardware.inc"
 ; Game macros
 
 ; AT(X, Y)
+; load into hl the VRAM address for a given position on _SCRN0
+AT: MACRO
+	ld hl, _SCRN0 + (SCRN_VY_B * \2) + \1
+ENDM
+
+; DW_AT(X, Y)
 ; allocates a word holding the VRAM location for a given position on _SCRN0
 DW_AT: MACRO
 	DW _SCRN0 + (SCRN_VY_B * \2) + \1
@@ -31,19 +37,6 @@ loadGameTiles::
 setupGame::
 	; zero out dice variables
 	call InitDice
-
-	; setup some test text - replace this
-	ld de, r_str_test
-	ld hl, _SCRN0 + 32 + 2
-	call Strcpy
-	ld bc, 33 - (r_str_test2 - r_str_test)
-	add hl, bc
-	inc de
-	call Strcpy
-	ld bc, 33 - (r_str_test3 - r_str_test2)
-	add hl, bc
-	inc de
-	call Strcpy
 
 	; setup cursor position
 	; ensure a cursor pos change while avoiding overwriting text, etc.
@@ -122,14 +115,107 @@ updateCursor:
 	ld [hl], d
 	ret
 
+; Load in the text that doesn't change during the game as well as 00 scores
+; console must be in VBlank/have screen turned off
+loadGameText::
+	ld de, LABEL_TEXT
+
+	AT 2, 1
+	call Strcpy
+
+	inc de				; get past final null char
+	AT 2, 2
+	call Strcpy
+
+	inc de
+	AT 2, 4
+	call Strcpy
+	inc de
+	AT 2, 5
+	call Strcpy
+	inc de
+	AT 2, 6
+	call Strcpy
+	inc de
+	AT 2, 7
+	call Strcpy
+	inc de
+	AT 2, 8
+	call Strcpy
+	inc de
+	AT 2, 9
+	call Strcpy
+	inc de
+	AT 2, 10
+	call Strcpy
+
+	inc de
+	AT 10, 4
+	call Strcpy
+	inc de
+	AT 10, 5
+	call Strcpy
+	inc de
+	AT 10, 6
+	call Strcpy
+	inc de
+	AT 10, 7
+	call Strcpy
+	inc de
+	AT 10, 8
+	call Strcpy
+	inc de
+	AT 10, 9
+	call Strcpy
+	inc de
+	AT 10, 10
+	call Strcpy
+	inc de
+	AT 10, 11
+	call Strcpy
+	inc de
+	AT 10, 12
+	call Strcpy
+
+	inc de
+	AT 2, 14
+	call Strcpy
+	inc de
+	AT 2, 15
+	call Strcpy
+	inc de
+	AT 2, 16
+	call Strcpy
+
+	ret
+
 SECTION "Game Data", ROM0
 
-r_str_test:
-	DB "ONES: 4", 0
-r_str_test2:
-	DB "TWOS: 2", 0
-r_str_test3:
-	DB "THREES: 0", 0
+LABEL_TEXT:
+	DB "ROLL", 0			; AT(2, 1)
+	DB "HELD", 0			; AT(2, 2)
+	DB "1'S:00", 0			; AT(2, 4)
+	DB "2'S:00", 0			; AT(2, 5)
+	DB "3'S:00", 0			; AT(2, 6)
+	DB "4'S:00", 0			; AT(2, 7)
+	DB "5'S:00", 0			; AT(2, 8)
+	DB "6'S:00", 0			; AT(2, 9)
+	DB "SUM:00", 0			; AT(2, 10)
+
+	DB "1 PAIR:00", 0		; AT(10, 4)
+	DB "2 PAIR:00", 0		; AT(10, 5)
+	DB "3 KIND:00", 0		; AT(10, 6)
+	DB "4 KIND:00", 0		; AT(10, 7)
+	DB "SMALL :00", 0		; AT(10, 8)
+	DB "LARGE :00", 0		; AT(10, 9)
+	DB "FULL H:00", 0		; AT(10, 10)
+	DB "CHANCE:00", 0		; AT(10, 11)
+	DB "YATZY :00", 0		; AT(10, 12)
+
+	DB "BONUS   :00", 0		; AT(2, 14)
+	DB "SCORE   :0000000", 0	; AT(2, 15)
+	DB "HI-SCORE:0000000", 0	; AT(2, 16)
+
 
 ; Cursor location lookup table
 ; byte pairs - a lookup table giving screen positions for corresponding
