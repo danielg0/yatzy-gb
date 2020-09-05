@@ -247,17 +247,11 @@ OfAKind::
 	ret
 .countEnd
 
-	; subtract DICE_TYPE_COUNT from hl to get offset which = 6 - dice value
-	ld de, $FFFF - DICE_TYPE_COUNT - 1
-	add hl, de			; l now contains 6 - dice value
-	; subtract from six to get actual dice value
-	ld a, 6
-	sub l
-	ld l, a
-
+	; after the above, d contains the highest value with a double
+	; score is d * b
 	ld a, 0
 .scoreLoop
-	add l
+	add d
 	dec b
 	jr nz, .scoreLoop
 	ret
