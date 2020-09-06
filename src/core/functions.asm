@@ -46,3 +46,21 @@ WaitVBlank::
 	jr c, WaitVBlank	; Else, loop
 	ret
 
+; write a bcd formatted value to address
+; split into its seperate digits and add an offset
+; @param a number in bcd format
+; @param hl address to start writing to
+; @param b offset to add to digit
+BCPcpy::
+	; remember - little endian encoding
+	ld c, a
+	and $F0
+	swap a
+	add b
+	ld [hli], a
+	ld a, c
+	and $0F
+	add b
+	ld [hl], a
+	ret
+
