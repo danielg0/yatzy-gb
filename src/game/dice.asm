@@ -133,11 +133,11 @@ ENDR
 	ld [W_CHANCE], a
 
 	; straights
-	ld b, %00111110
+	ld b, %00011111
 	call Straight
 	call bcd8bit_baa
 	ld [W_STRAIGHT_LOW], a
-	ld b, %00011111
+	ld b, %00111110
 	call Straight
 	call bcd8bit_baa
 	ld [W_STRAIGHT_HI], a
