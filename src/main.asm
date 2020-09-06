@@ -16,7 +16,11 @@ Setup:
 	call srand
 
 	; clear WRAM variables
-	; etc.
+	ld a, $FF		; reset joypad values (none pressed at start)
+	ld [W_DPAD], a
+	ld [W_BUTT], a
+	ld [W_DPAD_OLD], a
+	ld [W_BUTT_OLD], a
 
 	call WaitVBlank		; wait for VBlank before disabling screen in
 				; in order to perform setup / load in tiles
@@ -45,5 +49,26 @@ Game:
 	set 7, [hl]		; enable screen
 
 .gameLoop
+	; wait for a vblank before checking input
+	call WaitVBlank
+
+	; get joypad input and call function based on values
+	call ReadJoypad
+
+	; if a button just pressed, roll dice
+	ld hl, W_BUTT
+	bit 0, [hl]
+	jr nz, .inputEnd	; don't if button is not pressed
+	ld hl, W_BUTT_OLD
+	bit 0, [hl]
+	jr z, .inputEnd		; don't if button pressed last frame
+
+	; roll dice and update scores (remember to vblank before update VRAM)
+	call RollDice
+	call WaitVBlank
+	call drawScores
+	call drawDice
+
+.inputEnd
 	jr .gameLoop
 

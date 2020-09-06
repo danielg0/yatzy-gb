@@ -84,6 +84,22 @@ ENDR
 ; Get new values for all dice using rng functions, updating all DICE_ values,
 ; then update the score variables using the defined score functions
 RollDice::
+	; reset score variables before adding new ones
+	ld a, 0
+	ld hl, DICE_SUM
+	ld [hl], a
+	ld hl, DICE_TYPE
+	ld [hl], a
+
+	ld hl, DICE_TYPE_SUM
+REPT 6
+	ld [hli], a
+ENDR
+	ld hl, DICE_TYPE_COUNT
+REPT 6
+	ld [hli], a
+ENDR
+
 	; load dice with randomly generated values
 	ld hl, DICE
 	push hl				; use stack as both rand and UpdateDice

@@ -107,6 +107,36 @@ drawScores::
 
 	ret
 
+; draw dice values to the screen - reading from DICE (defined in dice.asm)
+; must be called during vblank period
+drawDice::
+	ld de, DICE
+	ld a, [de]			; use ascii hidden chars for dice
+	AT 8, 1
+	ld [hl], a
+
+	inc de
+	ld a, [de]
+	AT 10, 1
+	ld [hl], a
+
+	inc de
+	ld a, [de]
+	AT 12, 1
+	ld [hl], a
+
+	inc de
+	ld a, [de]
+	AT 14, 1
+	ld [hl], a
+
+	inc de
+	ld a, [de]
+	AT 16, 1
+	ld [hl], a
+
+	ret
+
 ; Update cursor position
 ; @param a the new position of the cursor
 ; if cursor position didn't change

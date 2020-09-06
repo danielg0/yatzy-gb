@@ -1,6 +1,45 @@
 INCLUDE "hardware.inc"
 
+SECTION "Function Variables", WRAM0
+
+; joypad variables
+W_DPAD:: DS 1			; byte holding current state of dpad
+W_BUTT:: DS 1			; byte holding current button press state
+W_DPAD_OLD:: DS 1		; byte holding previous state of dpad
+W_BUTT_OLD:: DS 1		; byte holding previous button press state
+
 SECTION "Functions", ROM0
+
+; Read joypad and write input to memory
+; Credit to bitnenfer
+ReadJoypad::
+	; Read P14
+	ld hl, rP1
+	ld a, $20
+	ld [hl], a
+	ld a, [hl]
+	ld hl, W_DPAD
+	ld b, [hl]
+	ld [hl], a
+	ld hl, W_DPAD_OLD
+	ld [hl], b
+
+	; Read P15
+	ld hl, rP1
+	ld a, $10
+	ld [hl], a
+	ld a, [hl]
+	ld hl, W_BUTT
+	ld b, [hl]
+	ld [hl], a
+	ld hl, W_BUTT_OLD
+	ld [hl], b
+
+	; Reset
+	ld hl, rP1
+	ld a, $FF
+	ld [hl], a
+	ret
 
 ; Copy a slice of data from one point in memory to another
 ; @param de memory address of start of data to be copied
