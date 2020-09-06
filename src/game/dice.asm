@@ -10,6 +10,23 @@ DICE_TYPE_SUM: DS 6			; bytes holding the sum of all dice of
 DICE_TYPE_COUNT: DS 6			; 6 bytes holding the number of dice of
 					; each type (1, 2, 3, 4, 5, 6)
 
+; score variables
+; pre-calculated so that there is enough time during vblank for transfer
+; values stored in BCD using library
+W_SINGLE:: DS 6				; holds values in bcd (1, 2, 3, 4, 5, 6)
+
+W_STRAIGHT_LOW:: DS 1
+W_STRAIGHT_HI:: DS 1
+
+W_YATZY:: DS 1
+W_CHANCE:: DS 1
+W_TWOPAIRS:: DS 1
+W_FULLHOUSE:: DS 1
+
+W_2_OFAKIND:: DS 1
+W_3_OFAKIND:: DS 1
+W_4_OFAKIND:: DS 1
+
 SECTION "Dice", ROM0
 
 ; Initialise zero values for all the dice variables
@@ -42,9 +59,12 @@ InitDice::
 	dec a
 	jr nz, .loop_DICE_TYPE_COUNT
 
+	; note: no need to init score variables as written to before reading
+
 	ret
 
-; Get new values for all dice using rng functions, updating all DICE_ values
+; Get new values for all dice using rng functions, updating all DICE_ values,
+; then update the score variables using the defined score functions
 RollDice::
 	; DEBUG - set constant dice roll
 	ld c, 4
@@ -57,6 +77,65 @@ RollDice::
 	call UpdateDice
 	ld c, 1
 	call UpdateDice
+
+	; update score variables
+
+	; singles
+	; as DICE_TYPE_SUM already holds required value, just convert
+	; essentially, this is memcpy with a call to convert bcd in the middle
+	ld c, 6
+	ld de, DICE_TYPE_SUM
+	ld hl, W_SINGLE
+.straightLoop
+	ld a, [de]
+	call bcd8bit_baa
+	ld [hli], a
+	inc de
+	dec c
+	jr nz, .straightLoop
+
+	; chance
+	; again, as is held in DICE_SUM, just copy after conversion
+	ld a, [DICE_SUM]
+	call bcd8bit_baa
+	ld [W_CHANCE], a
+
+	; straights
+	ld b, %00111110
+	call Straight
+	call bcd8bit_baa
+	ld [W_STRAIGHT_LOW], a
+	ld b, %00011111
+	call Straight
+	call bcd8bit_baa
+	ld [W_STRAIGHT_HI], a
+
+	; yatzy
+	call Yatzy
+	call bcd8bit_baa
+	ld [W_YATZY], a
+
+	; two pairs and full house
+	call TwoPairs
+	call bcd8bit_baa
+	ld [W_TWOPAIRS], a
+	call FullHouse
+	call bcd8bit_baa
+	ld [W_FULLHOUSE], a
+
+	; of a kinds
+	ld b, 2
+	call OfAKind
+	call bcd8bit_baa
+	ld [W_2_OFAKIND], a
+	ld b, 3
+	call OfAKind
+	call bcd8bit_baa
+	ld [W_3_OFAKIND], a
+	ld b, 4
+	call OfAKind
+	call bcd8bit_baa
+	ld [W_4_OFAKIND], a
 
 	ret
 

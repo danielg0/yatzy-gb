@@ -46,6 +46,82 @@ setupGame::
 	call updateCursor
 
 	call RollDice
+	call drawScores
+
+	ret
+
+; write a bcd formatted value to address
+; split into its seperate digits and add an offset
+; @param a number in bcd format
+; @param hl address to start writing to
+; @param b offset to add to digit
+BCPcpy:
+	; remember - little endian encoding
+	ld c, a
+	and $F0
+	swap a
+	add b
+	ld [hli], a
+	ld a, c
+	and $0F
+	add b
+	ld [hl], a
+	ret
+
+; draw updated score variables (defined in dice.asm) to the screen
+; must be called during vblank period/when display is off
+drawScores:
+	; offset is equal to $30 as this is the point numbers start in font
+	ld b, $30
+
+	; singles
+	AT 6, 4
+	ld a, [W_SINGLE]
+	call BCPcpy
+	AT 6, 5
+	ld a, [W_SINGLE + 1]
+	call BCPcpy
+	AT 6, 6
+	ld a, [W_SINGLE + 2]
+	call BCPcpy
+	AT 6, 7
+	ld a, [W_SINGLE + 3]
+	call BCPcpy
+	AT 6, 8
+	ld a, [W_SINGLE + 4]
+	call BCPcpy
+	AT 6, 9
+	ld a, [W_SINGLE + 5]
+	call BCPcpy
+
+	; left-hand side
+	AT 17, 4
+	ld a, [W_2_OFAKIND]
+	call BCPcpy
+	AT 17, 5
+	ld a, [W_TWOPAIRS]
+	call BCPcpy
+	AT 17, 6
+	ld a, [W_3_OFAKIND]
+	call BCPcpy
+	AT 17, 7
+	ld a, [W_4_OFAKIND]
+	call BCPcpy
+	AT 17, 8
+	ld a, [W_STRAIGHT_LOW]
+	call BCPcpy
+	AT 17, 9
+	ld a, [W_STRAIGHT_HI]
+	call BCPcpy
+	AT 17, 10
+	ld a, [W_FULLHOUSE]
+	call BCPcpy
+	AT 17, 11
+	ld a, [W_CHANCE]
+	call BCPcpy
+	AT 17, 12
+	ld a, [W_YATZY]
+	call BCPcpy
 
 	ret
 
@@ -194,23 +270,23 @@ SECTION "Game Data", ROM0
 LABEL_TEXT:
 	DB "ROLL", 0			; AT(2, 1)
 	DB "HELD", 0			; AT(2, 2)
-	DB "1'S:00", 0			; AT(2, 4)
-	DB "2'S:00", 0			; AT(2, 5)
-	DB "3'S:00", 0			; AT(2, 6)
-	DB "4'S:00", 0			; AT(2, 7)
-	DB "5'S:00", 0			; AT(2, 8)
-	DB "6'S:00", 0			; AT(2, 9)
-	DB "SUM:00", 0			; AT(2, 10)
+	DB "1'S:", 0			; AT(2, 4)
+	DB "2'S:", 0			; AT(2, 5)
+	DB "3'S:", 0			; AT(2, 6)
+	DB "4'S:", 0			; AT(2, 7)
+	DB "5'S:", 0			; AT(2, 8)
+	DB "6'S:", 0			; AT(2, 9)
+	DB "SUM:", 0			; AT(2, 10)
 
-	DB "1 PAIR:00", 0		; AT(10, 4)
-	DB "2 PAIR:00", 0		; AT(10, 5)
-	DB "3 KIND:00", 0		; AT(10, 6)
-	DB "4 KIND:00", 0		; AT(10, 7)
-	DB "SMALL :00", 0		; AT(10, 8)
-	DB "LARGE :00", 0		; AT(10, 9)
-	DB "FULL H:00", 0		; AT(10, 10)
-	DB "CHANCE:00", 0		; AT(10, 11)
-	DB "YATZY :00", 0		; AT(10, 12)
+	DB "1 PAIR:", 0			; AT(10, 4)
+	DB "2 PAIR:", 0			; AT(10, 5)
+	DB "3 KIND:", 0			; AT(10, 6)
+	DB "4 KIND:", 0			; AT(10, 7)
+	DB "SMALL :", 0			; AT(10, 8)
+	DB "LARGE :", 0			; AT(10, 9)
+	DB "FULL H:", 0			; AT(10, 10)
+	DB "CHANCE:", 0			; AT(10, 11)
+	DB "YATZY :", 0			; AT(10, 12)
 
 	DB "BONUS   :00", 0		; AT(2, 14)
 	DB "SCORE   :0000000", 0	; AT(2, 15)
