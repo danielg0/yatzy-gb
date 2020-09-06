@@ -11,8 +11,9 @@ EntryPoint:
 SECTION "Main", ROM0
 
 Setup:
-	call RNGSeed		; perform before clearing WRAM variables so
-				; they can be used as a seed
+	; debug - seed rng with constant value to get same values every time
+	ld bc, 1
+	call srand
 
 	; clear WRAM variables
 	; etc.

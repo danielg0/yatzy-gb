@@ -1,7 +1,22 @@
 INCLUDE "hardware.inc"
 
+; MOD(X, r)
+; perform a MOD X operation on the value stored in r
+; @trashes a
+MOD: MACRO
+	ld a, \2
+.loop\@
+	sub \1
+	jr nc, .loop\@
+	add \1				; make value in a positive
+	add 1				; for dice, ensure range is 1 to X
+	ld \2, a
+ENDM
+
 SECTION "Dice Variables", WRAM0
 
+DICE:: DS 5				; store raw values for all 5 dice so
+					; they can be drawn to the screen
 DICE_SUM: DS 1				; 1 byte with the sum of all the dice
 DICE_TYPE: DS 1				; bit-array of dice types present
 					; 0 = not present, %--654321
@@ -33,31 +48,34 @@ SECTION "Dice", ROM0
 ; @return a 0
 ; @return hl DICE_TYPE_COUNT + 6
 InitDice::
+	; init all values to 0
+	ld a, 0
+
+	; 6 byte DICE variable
+	ld hl, DICE
+REPT 6
+	ld [hli], a
+ENDR
+
 	; 1 byte DICE_SUM variable
 	ld hl, DICE_SUM
-	ld [hl], 0
+	ld [hl], a
 
 	; 1 byte DICE_TYPE variable
 	ld hl, DICE_TYPE
-	ld [hl], 0
+	ld [hl], a
 
 	; 6 byte DICE_TYPE_SUM variable
-	ld a, 6
 	ld hl, DICE_TYPE_SUM
-.loop_DICE_TYPE_SUM
-	ld [hl], 0
-	inc hl
-	dec a
-	jr nz, .loop_DICE_TYPE_SUM
+REPT 6
+	ld [hli], a
+ENDR
 
 	; 6 byte DICE_TYPE_COUNT variable
-	ld a, 6
 	ld hl, DICE_TYPE_COUNT
-.loop_DICE_TYPE_COUNT
-	ld [hl], 0
-	inc hl
-	dec a
-	jr nz, .loop_DICE_TYPE_COUNT
+REPT 6
+	ld [hli], a
+ENDR
 
 	; note: no need to init score variables as written to before reading
 
@@ -66,17 +84,31 @@ InitDice::
 ; Get new values for all dice using rng functions, updating all DICE_ values,
 ; then update the score variables using the defined score functions
 RollDice::
-	; DEBUG - set constant dice roll
-	ld c, 4
+	; load dice with randomly generated values
+	ld hl, DICE
+	push hl				; use stack as both rand and UpdateDice
+					; trash hl
+
+	; NOTE - to get a dice value, mod 6 is used on a random byte. This
+	; DOES NOT create a uniform probability distribution, leaning toward
+	; producing 1,2,3 over 4,5,6 by a small amount (1/255 I think).
+	; This should probably be replaced in future
+
+	; generate five dice rolls
+REPT 5
+	call rand			; load random 16bit value into bc
+					; but we'll only use c
+	MOD 6, c			; perform modulus to get a value
+					; between 1 and 6
+	pop hl
+	ld [hl], c
+	inc hl
+	push hl
 	call UpdateDice
-	ld c, 2
-	call UpdateDice
-	ld c, 6
-	call UpdateDice
-	ld c, 4
-	call UpdateDice
-	ld c, 1
-	call UpdateDice
+ENDR
+
+	; remember to pop hl at end
+	pop hl
 
 	; update score variables
 

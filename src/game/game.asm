@@ -52,7 +52,7 @@ setupGame::
 
 ; draw updated score variables (defined in dice.asm) to the screen
 ; must be called during vblank period/when display is off
-drawScores:
+drawScores::
 	; offset is equal to $30 as this is the point numbers start in font
 	ld b, $30
 
