@@ -55,20 +55,40 @@ Game:
 	; get joypad input and call function based on values
 	call ReadJoypad
 
-	; if a button just pressed, roll dice
+	; if a button just pressed, call action
+	; will perform function based on cursor position
+	; inputs changed = W_BUTT || !W_BUTT_OLD
+	; inputs changed = W_BUTT || (W_BUTT_OLD xor $FF)
+	ld a, [W_BUTT_OLD]
+	cpl			; a = a xor $FF
 	ld hl, W_BUTT
-	bit 0, [hl]
-	jr nz, .inputEnd	; don't if button is not pressed
-	ld hl, W_BUTT_OLD
-	bit 0, [hl]
-	jr z, .inputEnd		; don't if button pressed last frame
-
+	or [hl]
+	bit 0, a
+	jr nz, .noAction	; if a button not pressed (bit 0, a == 1) break
+	call GameAction
 	; roll dice and update scores (remember to vblank before update VRAM)
 	call RollDice
 	call WaitVBlank
 	call drawScores
 	call drawDice
 
-.inputEnd
+	; if action called, don't move til next frame
+	jr .gameLoop
+
+.noAction
+	; if directional button pressed, move cursor
+	; directions changed = W_DPAD || !W_DPAD_OLD
+	ld a, [W_DPAD_OLD]
+	cpl
+	ld hl, W_DPAD
+	or [hl]
+	or %11110000		; ensure first 4 bits don't influence result
+	cp $FF
+	jr z, .gameLoop		; if dpad not pressed, break
+
+	call moveCursor		; uses dpad changes stored in a
+	call updateCursor	; shouldn't need to wait a frame as there
+				; should be enough cycles to process everything
+
 	jr .gameLoop
 

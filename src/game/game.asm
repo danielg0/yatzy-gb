@@ -16,7 +16,7 @@ ENDM
 
 ; Game Constants
 CURSOR_MIN EQU 01			; max value W_CURSOR_POS can hold
-CURSOR_MAX EQU 03			; min ""
+CURSOR_MAX EQU 17			; min ""
 
 SECTION "Game Variables", WRAM0
 
@@ -44,9 +44,6 @@ setupGame::
 	ld [hl], CURSOR_MAX
 	ld a, CURSOR_MIN
 	call updateCursor
-
-	call RollDice
-	call drawScores
 
 	ret
 
@@ -137,7 +134,35 @@ drawDice::
 
 	ret
 
-; Update cursor position
+; Perform an action
+; A button just pressed, use cursor pos to figure out what to do next
+GameAction::
+	; load cursor pos into a
+	ld a, [W_CURSOR_POS]
+
+	ret
+
+; Update cursor index based on controller input
+; @param a the dpad input byte, 0 used where input changed
+; @param a new position of the cursor
+moveCursor::
+	; load cursor pos variable into d
+	ld hl, W_CURSOR_POS
+	ld d, [hl]
+
+	; move cursor up and down if up/down dpad
+	bit 3, a			; if down pressed, inc position
+	jr nz, .notDown
+	inc d
+.notDown
+	bit 2, a			; if up pressed, dec position
+	jr nz, .notUp
+	dec d
+.notUp
+	ld a, d
+	ret
+
+; Update cursor position on screen
 ; @param a the new position of the cursor
 ; if cursor position didn't change
 ; @return a the position of the cursor
@@ -149,7 +174,7 @@ drawDice::
 ; @return hl W_CURSOR_POS
 ; @return d new cursor position (ie. a)
 ; @return flags depends on if a was in range
-updateCursor:
+updateCursor::
 	ld hl, W_CURSOR_POS
 	cp [hl]				; check if cursor position actually
 	ret z				; needs changing
@@ -309,10 +334,28 @@ LABEL_TEXT:
 ; byte pairs - a lookup table giving screen positions for corresponding
 ; W_CURSOR_POS values
 CURSOR_TABLE:
-	DW $000				; blank to allow for wrapping around
-	DW_AT 1, 1			; ONES column
-	DW_AT 1, 2			; TWOS column
-	DW_AT 1, 3			; THREES column
+	DW $0000			; blank to allow for wrapping around
+	DW_AT 1, 1			; ROLL
+	DW_AT 1, 2			; HELD
+
+	; singles
+	DW_AT 1, 4			; 1'S
+	DW_AT 1, 5			; 2's
+	DW_AT 1, 6			; 3's
+	DW_AT 1, 7			; 4's
+	DW_AT 1, 8			; 5's
+	DW_AT 1, 9			; 6's
+
+	; other combinations
+	DW_AT 9, 4			; 1 PAIR
+	DW_AT 9, 5			; 2 PAIR
+	DW_AT 9, 6			; 3 KIND
+	DW_AT 9, 7			; 4 KIND
+	DW_AT 9, 8			; SMALL
+	DW_AT 9, 9			; LARGE
+	DW_AT 9, 10			; FULL H
+	DW_AT 9, 11			; CHANCE
+	DW_AT 9, 12			; YATZY
 
 INCLUDE "font.inc"
 

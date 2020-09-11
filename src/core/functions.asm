@@ -95,7 +95,10 @@ BCPcpy::
 	ld c, a
 	and $F0
 	swap a
+	; if a 0, print space (ie. don't add offset)
+	jr z, .zero
 	add b
+.zero
 	ld [hli], a
 	ld a, c
 	and $0F
