@@ -26,7 +26,7 @@ SECTION "Game", ROM0
 
 ; Load game tiles from ROM into VRAM
 ; console must be in VBlank/have screen turned off
-loadGameTiles::
+LoadGameTiles::
 	ld de, font_tile_data
 	ld bc, font_tile_data_size
 	ld hl, _VRAM
@@ -34,7 +34,7 @@ loadGameTiles::
 	ret
 
 ; Perform all pre-game, post-load setup (ie. setting values in bg map)
-setupGame::
+SetupGame::
 	; zero out dice variables
 	call InitDice
 
@@ -43,13 +43,13 @@ setupGame::
 	ld hl, W_CURSOR_POS
 	ld [hl], CURSOR_MAX
 	ld a, CURSOR_MIN
-	call updateCursor
+	call UpdateCursor
 
 	ret
 
 ; draw updated score variables (defined in dice.asm) to the screen
 ; must be called during vblank period/when display is off
-drawScores::
+DrawScores::
 	; offset is equal to $30 as this is the point numbers start in font
 	ld b, $30
 
@@ -106,7 +106,7 @@ drawScores::
 
 ; draw dice values to the screen - reading from DICE (defined in dice.asm)
 ; must be called during vblank period
-drawDice::
+DrawDice::
 	ld de, DICE
 	ld a, [de]			; use ascii hidden chars for dice
 	AT 8, 1
@@ -145,7 +145,7 @@ GameAction::
 ; Update cursor index based on controller input
 ; @param a the dpad input byte, 0 used where input changed
 ; @param a new position of the cursor
-moveCursor::
+MoveCursor::
 	; load cursor pos variable into d
 	ld hl, W_CURSOR_POS
 	ld d, [hl]
@@ -174,7 +174,7 @@ moveCursor::
 ; @return hl W_CURSOR_POS
 ; @return d new cursor position (ie. a)
 ; @return flags depends on if a was in range
-updateCursor::
+UpdateCursor::
 	ld hl, W_CURSOR_POS
 	cp [hl]				; check if cursor position actually
 	ret z				; needs changing
@@ -230,7 +230,7 @@ updateCursor::
 
 ; Load in the text that doesn't change during the game as well as 00 scores
 ; console must be in VBlank/have screen turned off
-loadGameText::
+LoadGameText::
 	ld de, LABEL_TEXT
 
 	AT 2, 1

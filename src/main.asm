@@ -38,9 +38,9 @@ Setup:
 	jr nz, .ninLoop
 
 Game:
-	call loadGameTiles
-	call loadGameText
-	call setupGame
+	call LoadGameTiles
+	call LoadGameText
+	call SetupGame
 
 	ld hl, rBGP
 	ld [hl], %11100100	; setup BG palette
@@ -69,8 +69,8 @@ Game:
 	; roll dice and update scores (remember to vblank before update VRAM)
 	call RollDice
 	call WaitVBlank
-	call drawScores
-	call drawDice
+	call DrawScores
+	call DrawDice
 
 	; if action called, don't move til next frame
 	jr .gameLoop
@@ -86,8 +86,8 @@ Game:
 	cp $FF
 	jr z, .gameLoop		; if dpad not pressed, break
 
-	call moveCursor		; uses dpad changes stored in a
-	call updateCursor	; shouldn't need to wait a frame as there
+	call MoveCursor		; uses dpad changes stored in a
+	call UpdateCursor	; shouldn't need to wait a frame as there
 				; should be enough cycles to process everything
 
 	jr .gameLoop
