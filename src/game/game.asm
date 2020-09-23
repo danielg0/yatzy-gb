@@ -140,6 +140,18 @@ GameAction::
 	; load cursor pos into a
 	ld a, [W_CURSOR_POS]
 
+	cp 1				; cursor pos 1 is roll button
+	jr nz, .noRoll			; if a == 1, roll dice
+
+	; roll dice, updating scores, then draw to screen
+	; remember to wait for a vblank after updating scores as this may take
+	; more than one frame
+	call RollDice
+	call WaitVBlank
+	call DrawScores
+	call DrawDice
+.noRoll
+
 	ret
 
 ; Update cursor index based on controller input

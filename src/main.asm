@@ -70,11 +70,6 @@ Game:
 	bit 0, a
 	jr nz, .noAction	; if a button not pressed (bit 0, a == 1) break
 	call GameAction
-	; roll dice and update scores (remember to vblank before update VRAM)
-	call RollDice
-	call WaitVBlank
-	call DrawScores
-	call DrawDice
 
 	; if action called, don't move til next frame
 	jr .gameLoop
