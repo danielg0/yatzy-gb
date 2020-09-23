@@ -11,6 +11,10 @@ EntryPoint:
 SECTION "Main", ROM0
 
 Setup:
+	ld hl, rIE		; enable vblank interrupts - used for WaitVBlank
+	ld [hl], IEF_VBLANK
+	ei
+
 	; debug - seed rng with constant value to get same values every time
 	ld bc, 1
 	call srand

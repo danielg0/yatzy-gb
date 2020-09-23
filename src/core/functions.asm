@@ -75,14 +75,10 @@ Strcpy::
 	inc de
 	jr Strcpy
 
-; Hang until a vblank occurs
-; TODO: Rewrite this using HALT instruction
-; @return a 144
-; @return flags Z reset C set
+; Halt until a vblank occurs
 WaitVBlank::
-	ld a, [rLY]		; Wait until rLY == 144 (start of vblank period)
-	cp 144
-	jr c, WaitVBlank	; Else, loop
+	halt			; suspend cpu and wait for any interrupt
+				; vblank is only interrupt that can occur
 	ret
 
 ; write a bcd formatted value to address
