@@ -34,7 +34,7 @@ Setup:
 	; clear nintendo logo from VRAM
 	ld hl, $9900
 	ld b, $9900 - $9930
-	ld a, $00
+	xor a			; ld a, $00
 .ninLoop
 	ld [hl], a
 	inc hl

@@ -49,7 +49,7 @@ SECTION "Dice", ROM0
 ; @return hl DICE_TYPE_COUNT + 6
 InitDice::
 	; init all values to 0
-	ld a, 0
+	xor a				; ld a, 0
 
 	; 6 byte DICE variable
 	ld hl, DICE
@@ -85,7 +85,7 @@ ENDR
 ; then update the score variables using the defined score functions
 RollDice::
 	; reset score variables before adding new ones
-	ld a, 0
+	xor a				; ld a, 0
 	ld hl, DICE_SUM
 	ld [hl], a
 	ld hl, DICE_TYPE
@@ -246,7 +246,7 @@ Straight::
 	ld a, [DICE_SUM]		; for straights, score is sum of dice
 	ret
 .fail
-	ld a, 0
+	xor a				; ld a, 0
 	ret
 
 ; Calculate score for a single number
@@ -283,7 +283,7 @@ Yatzy::
 	ld a, 50			; score for a yatzy is 50
 	ret
 .noYatzy
-	ld a, 0
+	xor a				; ld a, 0
 	ret
 
 ; Calculate a chance score. Just place [DICE_SUM] in a
@@ -318,7 +318,7 @@ TwoPairs::
 	ld a, c				; else c holds final score
 	ret
 .noScore
-	ld a, 0
+	xor a				; ld a, 0
 	ret
 
 ; Calculate full house score
@@ -353,7 +353,7 @@ FullHouse::
 					; of all dice
 	ret
 .noFullHouse
-	ld a, 0				; score zero otherwise
+	xor a				; score zero otherwise
 	ret
 
 ; Calculate the score for "Of A Kind" scores
@@ -370,13 +370,13 @@ OfAKind::
 	jr nc, .countEnd		; if a >= b break
 	dec d
 	jr nz, .countLoop		; if d > 0 return
-	ld a, 0
+	xor a				; ld a, 0
 	ret
 .countEnd
 
 	; after the above, d contains the highest value with a double
 	; score is d * b
-	ld a, 0
+	xor a				; ld a, 0
 .scoreLoop
 	add d
 	dec b
