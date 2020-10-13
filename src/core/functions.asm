@@ -11,13 +11,16 @@ W_BUTT_OLD:: DS 1		; byte holding previous button press state
 SECTION "Functions", ROM0
 
 ; Read joypad and write input to memory
-; Credit to bitnenfer
+; Credit to bitnenfer - I've made a change where the io registers are read
+; repeatedly to create a delay and allow the inputs to stabilise (see pandocs)
 ReadJoypad::
 	; Read P14
 	ld hl, rP1
 	ld a, $20
 	ld [hl], a
+REPT 5
 	ld a, [hl]
+ENDR
 	ld hl, W_DPAD
 	ld b, [hl]
 	ld [hl], a
@@ -28,7 +31,9 @@ ReadJoypad::
 	ld hl, rP1
 	ld a, $10
 	ld [hl], a
+REPT 5
 	ld a, [hl]
+ENDR
 	ld hl, W_BUTT
 	ld b, [hl]
 	ld [hl], a
