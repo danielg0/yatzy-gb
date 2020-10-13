@@ -20,12 +20,17 @@ OBJFILE	:= $(patsubst $(SRC)/%.asm, $(BIN)/obj/%.o, $(SRCFILE))
 all: fix
 
 fix: $(OUT).gb
-	$(RGBFIX) -vp 0 $(OUT).gb
+	$(RGBFIX) -jvp 0 \
+	--title "YATZY" \
+	--game-id "DG0 " \
+	--old-licensee 51 \
+	$(OUT).gb
 
 $(OUT).map $(OUT).sym $(OUT).gb: $(OBJFILE)
-	$(RGBLINK) -m $(OUT).map \
-	-n $(OUT).sym \
-	-o $(OUT).gb \
+	$(RGBLINK) --tiny --dmg \
+	--map $(OUT).map \
+	--sym $(OUT).sym \
+	--output $(OUT).gb \
 	$(OBJFILE)
 
 $(BIN)/obj/%.o: $(SRC)/%.asm
