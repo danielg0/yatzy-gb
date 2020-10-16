@@ -190,8 +190,8 @@ ENDR
 ; Update variable values for a new dice roll
 ; @param c - new dice roll
 ; @return c - new dice roll
-; @return de - 16bit value of c, decremented
-; @return hl - DICE_TYPE_SUM + c
+; @return de - DICE_TYPE_COUNT - DICE_TYPE_SUM
+; @return hl - DICE_TYPE_COUNT + c
 ; @trashes a
 ; @trashes b
 UpdateDice:
@@ -239,7 +239,7 @@ UpdateDice:
 ; @param b required DICE_TYPE bit pattern
 ; @return a score
 Straight::
-	; able to make a straight comparision as only 5 dice
+	; able to make a straight comparison as only 5 dice
 	ld a, [DICE_TYPE]
 	cp b
 	jr nz, .fail
@@ -312,7 +312,7 @@ TwoPairs::
 	dec d
 	jr nz, .loop
 
-	ld a, b				; check for prescence of two doubles
+	ld a, b				; check for presence of two doubles
 	cp 2
 	jr c, .noScore			; if b < 2, score is 0
 	ld a, c				; else c holds final score

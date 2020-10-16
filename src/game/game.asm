@@ -215,7 +215,7 @@ UpdateCursor::
 
 	ld a, [hli]			; remember: little endian encoding
 	ld c, a
-	ld a, [hl]			; bc contains VRAM addres of cursor
+	ld a, [hl]			; bc contains VRAM address of cursor
 	ld b, a
 
 	xor a				; a set to zero to get rid of cursor
