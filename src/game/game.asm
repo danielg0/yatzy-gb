@@ -17,10 +17,14 @@ ENDM
 ; Game Constants
 CURSOR_MIN EQU 01			; max value W_CURSOR_POS can hold
 CURSOR_MAX EQU 17			; min ""
+HELD_MIN EQU 01				; max and min value W_HELD_POS can hold
+HELD_MAX EQU 05
 
 SECTION "Game Variables", WRAM0
 
 W_CURSOR_POS: DS 1			; byte holding position of cursor
+W_HELD_POS: DS 1			; byte holding position of hold cursor
+					; the 7th (last) bit's 0 if visible
 
 SECTION "Game", ROM0
 
@@ -44,6 +48,13 @@ SetupGame::
 	ld [hl], CURSOR_MAX
 	ld a, CURSOR_MIN
 	call UpdateCursor
+
+	; setup hold pos
+	ld a, HELD_MAX
+	ld [W_HELD_POS], a
+	ld a, HELD_MIN			; start out with non-visible cursor
+	or %10000000			; in first possible position
+	call UpdateHeldCursor
 
 	ret
 
@@ -230,6 +241,92 @@ UpdateCursor::
 	ld [hl], d
 	ret
 
+; update held cursor position on screen
+; @param a new value for cursor position where last bit indicates visibility
+; @return a new cursor position
+; @trashes ce
+; @trashes hl
+; @trashes b if old cursor position visible
+; @trashes d if new cursor position visible
+UpdateHeldCursor:
+	; assume held cursor always needs changing when this is called
+
+	ld e, a				; save new pos for later
+
+	; ignore last bit of new value when restricting range
+	and %01111111
+
+	; wraps around above and below CURSOR_MIN and CURSOR_MAX
+	cp HELD_MIN			; if a >= HELD_MIN
+	jr nc, .aboveMin
+	ld a, HELD_MAX
+.aboveMin
+	cp HELD_MAX + 1			; if a <= HELD_MAX
+	jr c, .belowMax
+	ld a, HELD_MIN
+.belowMax
+
+	; correct final bit
+	bit 7, e
+	jr z, .endBitZero
+	set 7, a
+.endBitZero
+
+	; save limited and corrected value
+	ld e, a
+
+	; load old position into c
+	ld hl, W_HELD_POS
+	ld c, [hl]
+
+	; if visible, delete old character
+	bit 7, c
+	jr nz, .dontClearOld
+
+	; dereference address in HELD_TABLE to get old vram address
+	ld hl, HELD_TABLE
+	ld b, $00			; bc contains 16-bit old held pos
+	add hl, bc			; [hl] is VRAM position
+	add hl, bc			; add twice due to 16-bit values
+
+	ld a, [hli]			; remember: little endian encoding
+	ld c, a
+	ld a, [hl]			; bc contains VRAM address of cursor
+	ld b, a
+
+	; clear old cursor
+	xor a				; ld a, $00
+	ld [bc], a
+
+.dontClearOld
+
+	; if visible bit of new pos set, write new cursor
+	bit 7, e
+	jr nz, .dontDrawNew
+
+	; dereference held table pos
+	ld hl, HELD_TABLE
+	ld d, $00			; de contains 16-bit new held pos
+	add hl, de
+	add hl, de
+
+	ld a, [hli]
+	ld c, a
+	ld a, [hl]
+	ld b, a
+
+	; write new cursor
+	ld a, "^"
+	ld [bc], a
+
+.dontDrawNew
+
+	; update variable
+	ld a, e
+	ld [W_HELD_POS], a
+
+	ret
+
 ; Load in the text that doesn't change during the game as well as 00 scores
 ; console must be in VBlank/have screen turned off
 LoadGameText::
@@ -358,6 +455,16 @@ CURSOR_TABLE:
 	DW_AT 9, 10			; FULL H
 	DW_AT 9, 11			; CHANCE
 	DW_AT 9, 12			; YATZY
+
+; Held cursor location lookup table
+; byte pairs - lookup table similar to CURSOR_TABLE
+HELD_TABLE:
+	DW $0000			; blank to allow for wrapping
+	DW_AT 8, 3			; dice 1
+	DW_AT 10, 3			; dice 2
+	DW_AT 12, 3			; dice 3
+	DW_AT 14, 3			; dice 4
+	DW_AT 16, 3			; dice 5
 
 INCLUDE "font.inc"
 
