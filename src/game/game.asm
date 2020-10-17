@@ -175,26 +175,15 @@ MoveCursor::
 	ret
 
 ; Update cursor position on screen
+; assumes cursor position changed
 ; @param a the new position of the cursor
-; if cursor position didn't change
-; @return a the position of the cursor
-; @return hl W_CURSOR_POS
-; @return flags Z set C reset
-; else
 ; @return a character code for ">"
 ; @return bc address in VRAM of the new cursors position
 ; @return hl W_CURSOR_POS
 ; @return d new cursor position (ie. a)
 ; @return flags depends on if a was in range
 UpdateCursor::
-	ld hl, W_CURSOR_POS
-	cp [hl]				; check if cursor position actually
-	ret z				; needs changing
-
-	; for the moment, wraps around above and below CURSOR_MIN
-	; TODO - implement some sort of switch statement allow for moving left
-	; and right
-
+	; wraps around above and below CURSOR_MIN and CURSOR_MAX
 	cp CURSOR_MIN			; if a >= CURSOR_MIN
 	jr nc, .aboveMin
 	ld a, CURSOR_MAX
@@ -206,6 +195,7 @@ UpdateCursor::
 
 	ld d, a				; save value of a for later
 
+	ld hl, W_CURSOR_POS
 	ld b, $00			; bc now contains [W_CURSOR_POS] as
 	ld c, [hl]			; a word
 	ld hl, CURSOR_TABLE
