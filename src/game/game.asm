@@ -165,24 +165,89 @@ GameAction::
 
 	ret
 
-; Update cursor index based on controller input
-; @param a the dpad input byte, 0 used where input changed
-; @param a new position of the cursor
-MoveCursor::
-	; load cursor pos variable into d
+; Perform actions based on DPAD input
+; @param e the dpad input byte, 0 used where input changed
+GameDPAD::
 	ld hl, W_CURSOR_POS
-	ld d, [hl]
+	ld a, [hl]
 
-	; move cursor up and down if up/down dpad
-	bit 3, a			; if down pressed, inc position
-	jr nz, .notDown
-	inc d
-.notDown
-	bit 2, a			; if up pressed, dec position
-	jr nz, .notUp
-	dec d
-.notUp
-	ld a, d
+	bit 3, e			; check if down pressed
+	jr nz, .notCursorDown
+	inc a				; if so, increment position
+.notCursorDown
+
+	bit 2, e			; check if up pressed
+	jr nz, .notCursorUp
+	dec a				; if so, decrement position
+.notCursorUp
+
+	; if cursor is in score zone, process left/right movement
+	cp 3				; if a >= 3
+	jr c, .cursorLREnd
+
+	bit 0, e			; 	if right pressed and a < 9
+	jr nz, .notCursorRight
+	cp 9
+	jr nc, .notCursorRight
+
+	add 6				; 		a += 6
+
+.notCursorRight
+
+	bit 1, e			; 	if left pressed and 9 <= a < 15
+	jr nz, .cursorLREnd
+	cp 9
+	jr c, .cursorLREnd
+	cp 15
+	jr nc, .cursorLREnd
+
+	sub 6				; 		a -= 6
+
+.cursorLREnd
+
+	; if a cursor position change occurred, call UpdateCursor
+	cp [hl]
+	jr z, .noCursorUpdate
+
+	call UpdateCursor		; no need to save dpad (e) as unchanged
+	ld a, d				; load new cursor pos back into a
+.noCursorUpdate
+
+	; load current held cursor position into b
+	ld hl, W_HELD_POS
+	ld b, [hl]
+
+	; update cursor visibility based on cursor position
+	cp a, 2				; if cursor position is next to held
+	jr nz, .notHeld
+	res 7, b			; set held cursor visible
+	jr .heldVisEnd
+.notHeld
+	set 7, b			; else make visible
+.heldVisEnd
+
+	; if cursor visible, process dpad input
+	bit 7, b
+	jr nz, .heldLREnd
+
+	; if right held, increment position
+	bit 0, e
+	jr nz, .notHeldRight
+	inc b
+.notHeldRight
+
+	; if left held, decrement position
+	bit 1, e
+	jr nz, .heldLREnd
+	dec b
+.heldLREnd
+
+	; if held pos changed, call UpdateHeldCursor
+	ld a, b
+	cp [hl]
+	ret z
+
+	call UpdateHeldCursor
 	ret
 
 ; Update cursor position on screen
@@ -193,7 +258,7 @@ MoveCursor::
 ; @return hl W_CURSOR_POS
 ; @return d new cursor position (ie. a)
 ; @return flags depends on if a was in range
-UpdateCursor::
+UpdateCursor:
 	; wraps around above and below CURSOR_MIN and CURSOR_MAX
 	cp CURSOR_MIN			; if a >= CURSOR_MIN
 	jr nc, .aboveMin

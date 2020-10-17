@@ -85,9 +85,9 @@ Game:
 	cp $FF
 	jr z, .gameLoop		; if dpad not pressed, break
 
-	call MoveCursor		; uses dpad changes stored in a
-	call UpdateCursor	; shouldn't need to wait a frame as there
-				; should be enough cycles to process everything
+	; move dpad change into e, and call game update func
+	ld e, a
+	call GameDPAD
 
 	jr .gameLoop
 
