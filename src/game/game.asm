@@ -145,6 +145,34 @@ DrawDice::
 
 	ret
 
+; Draw a held symbol (*) beneath all held dice
+; @trashes a
+; @trashes hl
+DrawHeld:
+	; load in held bit array (defined in dice.asm)
+	ld a, [DICE_HELD]
+	; load in position of first dice
+	AT 8, 2
+
+I_DIE SET 0
+REPT 5
+	; if ith of a is set, write "*", else write " "
+	bit I_DIE, a
+	jr z, .drawSpace_\@
+	ld [hl], "*"
+	jr .end_\@
+.drawSpace_\@
+	ld [hl], " "
+.end_\@
+
+	; increment hl twice as that's the gap between dice
+	inc hl
+	inc hl
+I_DIE SET I_DIE + 1
+ENDR
+
+	ret
+
 ; Perform an action
 ; A button just pressed, use cursor pos to figure out what to do next
 GameAction::
@@ -161,7 +189,36 @@ GameAction::
 	call WaitVBlank
 	call DrawScores
 	call DrawDice
+
+	; when complete, return to main loop
+	ret
 .noRoll
+
+	; if cursor next to hold button, toggle holding of die
+	ld a, [W_HELD_POS]
+	bit 7, a			; last bit indicates visibility
+	jr nz, .noHeldToggle		; if 1, action isn't toggling hold
+
+	; create bit mask where bit set where held cursor is
+	ld b, %00000001
+.leftShiftBegin
+	cp a, 1				; not a do-while loop as b already
+					; holds a value required to flip die 1
+	jr z, .leftShiftEnd
+	sla b
+	dec a
+	jr .leftShiftBegin
+.leftShiftEnd
+
+	; xor existing HELD_DIE variable (see dice.asm) to flip selected die
+	ld hl, DICE_HELD
+	ld a, [hl]
+	xor b
+	ld [hl], a
+
+	; redraw held dice indicator
+	call DrawHeld
+.noHeldToggle
 
 	ret
 

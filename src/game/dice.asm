@@ -25,6 +25,9 @@ DICE_TYPE_SUM: DS 6			; bytes holding the sum of all dice of
 DICE_TYPE_COUNT: DS 6			; 6 bytes holding the number of dice of
 					; each type (1, 2, 3, 4, 5, 6)
 
+DICE_HELD:: DS 1			; byte bitmap showing which dice are
+					; currently held %---54321
+
 ; score variables
 ; pre-calculated so that there is enough time during vblank for transfer
 ; values stored in BCD using library
@@ -77,6 +80,10 @@ REPT 6
 	ld [hli], a
 ENDR
 
+	; 1 byte DICE_HELD variable
+	ld hl, DICE_HELD
+	ld [hl], a
+
 	; note: no need to init score variables as written to before reading
 
 	ret
@@ -100,31 +107,41 @@ REPT 6
 	ld [hli], a
 ENDR
 
-	; load dice with randomly generated values
-	ld hl, DICE
-	push hl				; use stack as both rand and UpdateDice
-					; trash hl
-
 	; NOTE - to get a dice value, mod 6 is used on a random byte. This
 	; DOES NOT create a uniform probability distribution, leaning toward
 	; producing 1,2,3 over 4,5,6 by a small amount (1/255 I think).
 	; This should probably be replaced in future
 
-	; generate five dice rolls
+	; generate dices rolls for the five dice if the corresponding bit of
+	; DICE_HELD isn't set
+I_DIE SET 0
 REPT 5
+	; check if held bit set for this die
+	ld a, [DICE_HELD]
+	bit I_DIE, a
+	jr nz, .dont_roll_\@		; if held bit set use existing value
+					; else, roll dice and get new value
 	call rand			; load random 16bit value into bc
 					; but we'll only use c
 	MOD 6, c			; perform modulus to get a value
 					; between 1 and 6
-	pop hl
-	ld [hl], c
-	inc hl
-	push hl
-	call UpdateDice
-ENDR
 
-	; remember to pop hl at end
-	pop hl
+	; update DICE variable
+	ld hl, DICE + I_DIE
+	ld [hl], c
+
+	jr .update_score_\@
+
+.dont_roll_\@
+	; load existing dice value into c, which is used by UpdateDice
+	ld a, [DICE + I_DIE]
+	ld c, a
+
+.update_score_\@
+	call UpdateDice			; update score values
+
+I_DIE SET I_DIE + 1
+ENDR
 
 	; update score variables
 
