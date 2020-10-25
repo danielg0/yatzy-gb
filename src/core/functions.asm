@@ -3,10 +3,10 @@ INCLUDE "hardware.inc"
 SECTION "Function Variables", WRAM0
 
 ; joypad variables
-W_DPAD:: DS 1			; byte holding current state of dpad
-W_BUTT:: DS 1			; byte holding current button press state
-W_DPAD_OLD:: DS 1		; byte holding previous state of dpad
-W_BUTT_OLD:: DS 1		; byte holding previous button press state
+W_DPAD:: DS 1				; byte holding current state of dpad
+W_BUTT:: DS 1				;    ""    current button press state
+W_DPAD_OLD:: DS 1			;    ""    previous state of dpad
+W_BUTT_OLD:: DS 1			;    ""    previous button press state
 
 SECTION "Functions", ROM0
 
@@ -56,13 +56,13 @@ ENDR
 ; @return a zero
 ; @return flags Z set C reset
 Memcpy::
-	ld a, [de]		; grab one byte of source
-	ld [hli], a		; place in dest, incrementing hl at same time
-	inc de			; move to next byte
-	dec bc			; decrement count
-	ld a, b			; check if count 0, as `dec bc` doesn't update flags
+	ld a, [de]			; grab one byte of source
+	ld [hli], a			; place in dest, incrementing hl at same time
+	inc de				; move to next byte
+	dec bc				; decrement count
+	ld a, b				; check if count 0, as `dec bc` doesn't update flags
 	or c
-	jr nz, Memcpy		; if count not 0, copy more data
+	jr nz, Memcpy			; if count not 0, copy more data
 	ret
 
 ; Copy a nul-terminated string up to, but not including the NULL character
@@ -82,9 +82,9 @@ Strcpy::
 
 ; Halt until a vblank occurs
 WaitVBlank::
-	halt			; suspend cpu and wait for any interrupt
-				; vblank is only interrupt that can occur
-	ret
+	halt				; suspend cpu and wait for any 
+	ret				; interrupt as a vblank is the only
+					; interrupt that can occur
 
 ; write a bcd formatted value to address
 ; split into its seperate digits and add an offset
