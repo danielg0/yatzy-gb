@@ -31,19 +31,24 @@ DICE_HELD:: DS 1			; byte bitmap showing which dice are
 ; score variables
 ; pre-calculated so that there is enough time during vblank for transfer
 ; values stored in BCD using library
+
+; IMPORTANT: stored in memory in the same order as on screen. This is so that
+; the score for the category the cursor is next to is:
+; score = [W_DICE_SCORES + (W_CURSOR_POS - 3)]
+W_DICE_SCORES::
 W_SINGLE:: DS 6				; holds values in bcd (1, 2, 3, 4, 5, 6)
+
+W_2_OFAKIND:: DS 1
+W_TWOPAIRS:: DS 1
+W_3_OFAKIND:: DS 1
+W_4_OFAKIND:: DS 1
 
 W_STRAIGHT_LOW:: DS 1
 W_STRAIGHT_HI:: DS 1
 
-W_YATZY:: DS 1
-W_CHANCE:: DS 1
-W_TWOPAIRS:: DS 1
 W_FULLHOUSE:: DS 1
-
-W_2_OFAKIND:: DS 1
-W_3_OFAKIND:: DS 1
-W_4_OFAKIND:: DS 1
+W_CHANCE:: DS 1
+W_YATZY:: DS 1
 
 SECTION "Dice", ROM0
 
