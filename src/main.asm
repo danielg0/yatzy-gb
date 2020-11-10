@@ -62,6 +62,23 @@ Game:
 	; get joypad input and call function based on values
 	call ReadJoypad
 
+	; if directional button pressed, move cursor
+	; directions changed = W_DPAD || !W_DPAD_OLD
+	ld a, [W_DPAD_OLD]
+	cpl
+	ld hl, W_DPAD
+	or [hl]
+	or %11110000			; so first 4 bits don't change result
+	cp $FF
+	jr z, .noDPAD			; if dpad not pressed, check a button
+
+	; move dpad change into e, and call dpad update function
+	ld e, a
+	call GameDPAD
+
+	; if dpad changed, ignore button input
+
+.noDPAD
 	; if a button just pressed, call action
 	; will perform function based on cursor position
 	; inputs changed = W_BUTT || !W_BUTT_OLD
@@ -71,27 +88,9 @@ Game:
 	ld hl, W_BUTT
 	or [hl]
 	bit 0, a
-	jr nz, .noAction		; if a button not pressed
+	jr nz, .gameLoop		; if a button not pressed
 					; (bit 0, a == 1) break
 	call GameAction
-
-	; if action called, don't move til next frame
-	jr .gameLoop
-
-.noAction
-	; if directional button pressed, move cursor
-	; directions changed = W_DPAD || !W_DPAD_OLD
-	ld a, [W_DPAD_OLD]
-	cpl
-	ld hl, W_DPAD
-	or [hl]
-	or %11110000			; so first 4 bits don't change result
-	cp $FF
-	jr z, .gameLoop			; if dpad not pressed, break
-
-	; move dpad change into e, and call game update function
-	ld e, a
-	call GameDPAD
 
 	jr .gameLoop
 
