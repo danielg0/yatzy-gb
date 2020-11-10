@@ -23,6 +23,8 @@ HELD_MAX EQU 05
 SECTION "Game Variables", WRAM0
 
 W_CURSOR_POS: DS 1			; byte holding position of cursor
+					; last bit is 1 if both cursors are
+					; locked in place
 W_HELD_POS: DS 1			; byte holding position of hold cursor
 					; the 7th (last) bit's 0 if visible
 
@@ -48,6 +50,12 @@ SetupGame::
 	ld [hl], CURSOR_MAX
 	ld a, CURSOR_MIN
 	call UpdateCursor
+
+	; lock cursor in position next to roll button
+	; don't allow player to score/change held until they've rolled the dice
+	ld a, [W_CURSOR_POS]
+	set 7, a
+	ld [W_CURSOR_POS], a
 
 	; setup hold pos
 	ld a, HELD_MAX
@@ -179,6 +187,10 @@ GameAction::
 	; load cursor pos into a
 	ld a, [W_CURSOR_POS]
 
+	; if last bit set, unset to unlock cursor movement
+	res 7, a			; don't bother comparing, just clear
+	ld [W_CURSOR_POS], a
+
 	cp 1				; cursor pos 1 is roll button
 	jr nz, .noRoll			; if a == 1, roll dice
 
@@ -228,6 +240,11 @@ GameDPAD::
 	ld hl, W_CURSOR_POS
 	ld a, [hl]
 
+	; if last bit of W_CURSOR_POS set, don't perform dpad update
+	; note: this will lock cursor and held-cursor in position
+	bit 7, a
+	ret nz
+
 	bit 3, e			; check if down pressed
 	jr nz, .notCursorDown
 	inc a				; if so, increment position
@@ -274,7 +291,7 @@ GameDPAD::
 	ld hl, W_HELD_POS
 	ld b, [hl]
 
-	; update cursor visibility based on cursor position
+	; update held cursor visibility based on cursor position
 	cp a, 2				; if cursor position is next to held
 	jr nz, .notHeld
 	res 7, b			; set held cursor visible
