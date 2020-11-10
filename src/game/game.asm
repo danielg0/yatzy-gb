@@ -75,51 +75,51 @@ DrawScores::
 	; singles
 	AT 6, 4
 	ld a, [W_SINGLE]
-	call BCPcpy
+	call BCDcpy
 	AT 6, 5
 	ld a, [W_SINGLE + 1]
-	call BCPcpy
+	call BCDcpy
 	AT 6, 6
 	ld a, [W_SINGLE + 2]
-	call BCPcpy
+	call BCDcpy
 	AT 6, 7
 	ld a, [W_SINGLE + 3]
-	call BCPcpy
+	call BCDcpy
 	AT 6, 8
 	ld a, [W_SINGLE + 4]
-	call BCPcpy
+	call BCDcpy
 	AT 6, 9
 	ld a, [W_SINGLE + 5]
-	call BCPcpy
+	call BCDcpy
 
 	; left-hand side
 	AT 17, 4
 	ld a, [W_2_OFAKIND]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 5
 	ld a, [W_TWOPAIRS]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 6
 	ld a, [W_3_OFAKIND]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 7
 	ld a, [W_4_OFAKIND]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 8
 	ld a, [W_STRAIGHT_LOW]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 9
 	ld a, [W_STRAIGHT_HI]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 10
 	ld a, [W_FULLHOUSE]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 11
 	ld a, [W_CHANCE]
-	call BCPcpy
+	call BCDcpy
 	AT 17, 12
 	ld a, [W_YATZY]
-	call BCPcpy
+	call BCDcpy
 
 	ret
 

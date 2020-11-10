@@ -91,7 +91,7 @@ WaitVBlank::
 ; @param a number in bcd format
 ; @param hl address to start writing to
 ; @param b offset to add to digit
-BCPcpy::
+BCDcpy::
 	; remember - little endian encoding
 	ld c, a
 	and $F0
