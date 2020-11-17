@@ -28,6 +28,11 @@ W_CURSOR_POS: DS 1			; byte holding position of cursor
 W_HELD_POS: DS 1			; byte holding position of hold cursor
 					; the 7th (last) bit's 0 if visible
 
+W_SCORE: DS 2				; stores score of current game as BCD
+					; two bytes as max value is 374
+W_HIGH_SCORE: DS 2			; stores highest game score achieved as
+					; BCD. Reset when game turned off
+
 SECTION "Game", ROM0
 
 ; Load game tiles from ROM into VRAM
@@ -43,6 +48,12 @@ LoadGameTiles::
 SetupGame::
 	; zero out dice variables
 	call InitDice
+
+	; zero out score
+	xor a				; ld a, 0
+	ld hl, W_SCORE
+	ldi [hl], a
+	ld [hl], a
 
 	; setup cursor position
 	; ensure a cursor pos change while avoiding overwriting text, etc.
@@ -120,6 +131,51 @@ DrawScores::
 	AT 17, 12
 	ld a, [W_YATZY]
 	call BCDcpy
+
+	ret
+
+; draw highscores and current game score to the screen
+; note: don't confuse with DrawScores (maybe swap them at some point)
+DrawHighscores:
+	AT 14, 14			; load pos of score zone into hl
+
+	ld a, [W_SCORE + 1]		; load hundreds column into a
+	or a				; compare to zero
+	jr nz, .hundredsNonZero		; if non-zero, write number
+	ld [hli], a			; else, write blank char
+
+	; only write tens char if non-zero, else write blank
+	ld a, [W_SCORE]			; load tens into a
+	and $F0
+	swap a
+
+	; if non-zero add offset then write
+	; this has effect of writing blank if tens zero
+	jr z, .tensNotZero
+	add $30
+.tensNotZero
+	ld [hli], a
+
+	jr .units
+
+.hundredsNonZero
+	add $30				; add offset to get to numbers in font
+	ld [hli], a
+
+	; always write a char to screen, even if tens zero
+	ld a, [W_SCORE]			; load tens into a
+	and $F0
+	swap a
+
+	add $30				; add offset to get to numbers in font
+	ld [hli], a
+
+	; for units, always write, even if zero
+.units
+	ld a, [W_SCORE]			; load units into a
+	and $0F
+	add $30				; add offset to get to numbers in font
+	ld [hl], a
 
 	ret
 
@@ -230,7 +286,43 @@ GameAction::
 
 	; redraw held dice indicator
 	call DrawHeld
+
+	; return to make sure scoring isn't attempted
+	ret
+
 .noHeldToggle
+
+	; else, assume cursor is next to a scoring button
+	; NOTE: this *will* cause errors if cursor pos out of range
+	; get address of score using W_DICE_SCORES + (W_CURSOR_POS - 3)
+	; see dice.asm for more info
+	ld a, [W_CURSOR_POS]		; needed as hold trashed a
+	sub 3				; a = W_CURSOR_POS - 3
+	ld c, a
+	ld b, $00			; bc now contains 16bit W_CURSOR_POS-3
+	add 3				; a = W_CURSOR_POS
+	ld hl, W_DICE_SCORES
+	add bc				; score = [hl]
+	ld a, [hl]			; a holds score of cat next to cursor
+
+	; add score to total score and redraw on screen
+	; must occur during vblank period, which it always will
+	ld hl, W_SCORE
+	add [hl]
+	daa				; will set c flag if overflow occurs
+	ld [hl], a
+
+	; if carry flag set, overflow occurred, so increment the hundreds
+	; column stored in the next memory address
+	; incrementing will preserve bcd, as the highest value that'll be
+	; stored is 374
+	jr nc, .noCarry
+	inc hl
+	inc [hl]
+.noCarry
+
+	; write score to screen
+	call DrawHighscores
 
 	ret
 
@@ -497,7 +589,7 @@ LoadGameText::
 	AT 2, 9
 	call Strcpy
 	inc de
-	AT 2, 10
+	AT 2, 11
 	call Strcpy
 
 	inc de
@@ -529,13 +621,13 @@ LoadGameText::
 	call Strcpy
 
 	inc de
-	AT 2, 14
+	AT 2, 12
 	call Strcpy
 	inc de
-	AT 2, 15
+	AT 3, 14
 	call Strcpy
 	inc de
-	AT 2, 16
+	AT 3, 15
 	call Strcpy
 
 	ret
@@ -551,7 +643,7 @@ LABEL_TEXT:
 	DB "4'S:", 0			; AT(2, 7)
 	DB "5'S:", 0			; AT(2, 8)
 	DB "6'S:", 0			; AT(2, 9)
-	DB "SUM:", 0			; AT(2, 10)
+	DB "SUM:", 0			; AT(2, 11)
 
 	DB "1 PAIR:", 0			; AT(10, 4)
 	DB "2 PAIR:", 0			; AT(10, 5)
@@ -563,9 +655,9 @@ LABEL_TEXT:
 	DB "CHANCE:", 0			; AT(10, 11)
 	DB "YATZY :", 0			; AT(10, 12)
 
-	DB "BONUS   :00", 0		; AT(2, 14)
-	DB "SCORE   :0000000", 0	; AT(2, 15)
-	DB "HI-SCORE:0000000", 0	; AT(2, 16)
+	DB "BON: 0", 0			; AT(2, 12)
+	DB "SCORE:       0", 0		; AT(3, 14)
+	DB "HIGHSCORE:   0", 0		; AT(3, 15)
 
 
 ; Cursor location lookup table
