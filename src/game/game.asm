@@ -33,6 +33,11 @@ W_SCORE: DS 2				; stores score of current game as BCD
 W_HIGH_SCORE: DS 2			; stores highest game score achieved as
 					; BCD. Reset when game turned off
 
+W_USED_SCORES: DS 2			; bit array storing which scoring
+					; categories have been used (order is
+					; the same as for cursor position)
+					; set bit = category used
+
 SECTION "Game", ROM0
 
 ; Load game tiles from ROM into VRAM
@@ -52,6 +57,11 @@ SetupGame::
 	; zero out score
 	xor a				; ld a, 0
 	ld hl, W_SCORE
+	ldi [hl], a
+	ld [hl], a
+
+	; zero out used scores
+	ld hl, W_USED_SCORES
 	ldi [hl], a
 	ld [hl], a
 
@@ -294,9 +304,42 @@ GameAction::
 
 	; else, assume cursor is next to a scoring button
 	; NOTE: this *will* cause errors if cursor pos out of range
+
+	; check if this scoring category has been used before
+	; index in W_USED_SCORES is W_CURSOR_POS - 3
+	ld a, [W_CURSOR_POS]		; needed as hold trashed a
+	sub 3				; ignore held and roll buttons
+
+	; as USED_SCORES spread over two bytes, find correct byte to right to
+	ld hl, W_USED_SCORES		; get address of score variables
+	cp a, 8				; if a >= 8, write to second byte
+	jr c, .firstByte
+	inc hl
+	sub 8				; get a back into correct range
+.firstByte
+
+	add 1				; add one to a so decrement can be
+					; done at least once
+	ld b, $01			; use b to hold bit mask
+.loop
+	dec a				; decrement a, if zero, than b is the
+	jr z, .done			; correct bit mask
+	sla b
+	jr .loop
+.done
+
+	; get value of bit in W_USED_SCORES
+	; if set, return, else set bit and continue
+	ld a, [hl]
+	and b				; if value in a is non-zero, bit set
+	ret nz
+	ld a, [hl]			; bit not-set so set it and write to
+	or b				; memory
+	ld [hl], a
+
 	; get address of score using W_DICE_SCORES + (W_CURSOR_POS - 3)
 	; see dice.asm for more info
-	ld a, [W_CURSOR_POS]		; needed as hold trashed a
+	ld a, [W_CURSOR_POS]		; needed as a trashed
 	sub 3				; a = W_CURSOR_POS - 3
 	ld c, a
 	ld b, $00			; bc now contains 16bit W_CURSOR_POS-3
@@ -423,6 +466,7 @@ GameDPAD::
 ; @return bc address in VRAM of the new cursors position
 ; @return hl W_CURSOR_POS
 ; @return d new cursor position (ie. a)
+; @trashes e
 ; @return flags depends on if a was in range
 UpdateCursor:
 	; wraps around above and below CURSOR_MIN and CURSOR_MAX
@@ -450,8 +494,42 @@ UpdateCursor:
 	ld a, [hl]			; bc contains VRAM address of cursor
 	ld b, a
 
-	xor a				; a set to zero to get rid of cursor
+	; load old position and check if next to a score category
+	ld hl, W_CURSOR_POS
+	ld a, [hl]			; retrieve current cursor position
+	cp 3				; check if next to scoring category
+	jr c, .writeBlankCharacter	; if a < 3, just writeBlankCharacter
+
+	; else, check if category next to cursor has been used
+	sub 3				; ignore held and roll buttons
+	cp a, 8				; see if score category is in first
+					; or second byte
+	ld hl, W_USED_SCORES
+	jr c, .firstByte		; if a < 8, read first byte
+	inc hl
+	sub 8
+.firstByte
+
+	ld e, [hl]
+	and a				; set zero flag if a zero
+.loop
+	jr z, .rotateEnd		; if a zero, jump to end of loop
+	rrc e				; rotate b right to put correct bit
+					; into first position
+	dec a
+	jr .loop
+.rotateEnd
+
+	; first bit in b now indicates whether score category has been used
+	bit 0, e
+	jr z, .writeBlankCharacter
+	ld a, "*"
+	ld [bc], a			; write star to show category used
+	jr .writeEnd
+.writeBlankCharacter
+	xor a				; ld a, $00
 	ld [bc], a
+.writeEnd
 
 	; repeat the above to set the character in its new position
 	ld b, $00
