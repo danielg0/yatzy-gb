@@ -38,6 +38,9 @@ W_USED_SCORES: DS 2			; bit array storing which scoring
 					; the same as for cursor position)
 					; set bit = category used
 
+W_ROLLS: DS 1				; a byte holding the number of dice
+					; rolls left
+
 SECTION "Game", ROM0
 
 ; Load game tiles from ROM into VRAM
@@ -77,6 +80,11 @@ SetupGame::
 	ld a, [W_CURSOR_POS]
 	set 7, a
 	ld [W_CURSOR_POS], a
+
+	; setup roll count
+	; start with 3 rolls
+	ld hl, W_ROLLS
+	ld [hl], 3
 
 	; setup hold pos
 	ld a, HELD_MAX
@@ -260,6 +268,14 @@ GameAction::
 	cp 1				; cursor pos 1 is roll button
 	jr nz, .noRoll			; if a == 1, roll dice
 
+	; check roll count to see if there are any left
+	ld hl, W_ROLLS
+	ld a, [hl]
+	and a				; cp a, a
+	ret z				; return if no rolls left
+	dec a				; else decrease and write to memory
+	ld [hl], a
+
 	; roll dice, updating scores, then draw to screen
 	; remember to wait for a vblank after updating scores as this may take
 	; more than one frame
@@ -366,6 +382,34 @@ GameAction::
 
 	; write score to screen
 	call DrawHighscores
+
+	; reset game to pre-roll state
+	; move cursor back next to roll button
+	ld a, 1
+	call UpdateCursor
+
+	; lock dice until roll occurs
+	ld hl, W_CURSOR_POS
+	ld a, [hl]
+	set 7, a
+	ld [hl], a
+
+	; reset held dice
+	xor a				; ld a, 0
+	ld [DICE_HELD], a
+	call DrawHeld
+
+	; blank out dice
+	; TODO: replace this with drawing text
+	ld hl, DICE
+REPT 6
+	ld [hli], a			; ld [hl], 0
+ENDR
+	call DrawDice
+
+	; increase dice rolls back to 3
+	ld hl, W_ROLLS
+	ld [hl], 3
 
 	ret
 
