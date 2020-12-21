@@ -93,6 +93,9 @@ SetupGame::
 	or %10000000			; in first possible position
 	call UpdateHeldCursor
 
+	; draw press a prompt
+	call DrawPrompt
+
 	ret
 
 ; draw updated score variables (defined in dice.asm) to the screen
@@ -197,33 +200,29 @@ DrawHighscores:
 
 	ret
 
+; draw a text prompt asking the player to press a
+; must be called during vblank period
+DrawPrompt::
+	ld de, PROMPT_TEXT
+	AT 8, 1				; load screen pos into hl
+	call Strcpy
+	ret
+
 ; draw dice values to the screen - reading from DICE (defined in dice.asm)
 ; must be called during vblank period
 DrawDice::
 	ld de, DICE
 	ld a, [de]			; use ascii hidden chars for dice
 	AT 8, 1
-	ld [hl], a
+	ld [hli], a
 
+REPT 4
+	xor a				; ld a, $00
+	ld [hli], a			; write 0s inbetween to erase any text
 	inc de
 	ld a, [de]
-	AT 10, 1
-	ld [hl], a
-
-	inc de
-	ld a, [de]
-	AT 12, 1
-	ld [hl], a
-
-	inc de
-	ld a, [de]
-	AT 14, 1
-	ld [hl], a
-
-	inc de
-	ld a, [de]
-	AT 16, 1
-	ld [hl], a
+	ld [hli], a
+ENDR
 
 	ret
 
@@ -399,13 +398,8 @@ GameAction::
 	ld [DICE_HELD], a
 	call DrawHeld
 
-	; blank out dice
-	; TODO: replace this with drawing text
-	ld hl, DICE
-REPT 6
-	ld [hli], a			; ld [hl], 0
-ENDR
-	call DrawDice
+	; blank out dice and draw text
+	call DrawPrompt
 
 	; increase dice rolls back to 3
 	ld hl, W_ROLLS
@@ -818,6 +812,10 @@ HELD_TABLE:
 	DW_AT 12, 3			; dice 3
 	DW_AT 14, 3			; dice 4
 	DW_AT 16, 3			; dice 5
+
+; A text prompt displayed whenever the user needs to press a
+PROMPT_TEXT:
+	DB "(PRESS A)", 0			; AT(8, 1)
 
 INCLUDE "font.inc"
 
