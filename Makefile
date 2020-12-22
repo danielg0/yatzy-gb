@@ -1,3 +1,6 @@
+# Makefile for creating yatzy-gb
+# Daniel G - MIT License
+
 RGBASM	:= rgbasm
 RGBLINK	:= rgblink
 RGBFIX	:= rgbfix
@@ -12,6 +15,8 @@ PROJ	:= yatzy
 OUT	:= $(BIN)/$(PROJ)
 EMU	:= bgb
 
+# Find all the source files (.asm) below the src/ dir
+# I don't know how portable this is
 SRCFILE	:= $(shell find $(SRC) -type f -name '*.asm')
 OBJFILE	:= $(patsubst $(SRC)/%.asm, $(BIN)/obj/%.o, $(SRCFILE))
 
