@@ -87,24 +87,24 @@ WaitVBlank::
 					; interrupt that can occur
 
 ; write a bcd formatted value to address
-; split into its seperate digits and add an offset
+; split into its seperate digits and add ascii number offset
 ; @param a number in bcd format
 ; @param hl address to start writing to
-; @param b offset to add to digit
-; @trashes c
+; @trashes b
 BCDcpy::
 	; remember - little endian encoding
-	ld c, a
+	ld b, a
 	and $F0
 	swap a
 	; if a 0, print space (ie. don't add offset)
 	jr z, .zero
-	add b
+	; add offset to get into ASCII digits
+	add $30
 .zero
 	ld [hli], a
-	ld a, c
+	ld a, b
 	and $0F
-	add b
+	add $30
 	ld [hl], a
 	ret
 

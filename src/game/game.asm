@@ -101,9 +101,6 @@ SetupGame::
 ; draw updated score variables (defined in dice.asm) to the screen
 ; must be called during vblank period/when display is off
 DrawScores::
-	; offset is equal to $30 as this is the point numbers start in font
-	ld b, $30
-
 	; singles
 	AT 6, 4
 	ld a, [W_SINGLE]
