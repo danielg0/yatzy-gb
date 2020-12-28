@@ -101,54 +101,70 @@ SetupGame::
 ; draw updated score variables (defined in dice.asm) to the screen
 ; must be called during vblank period/when display is off
 DrawScores::
-	; singles
-	AT 6, 4
-	ld a, [W_SINGLE]
-	call BCDcpy
-	AT 6, 5
-	ld a, [W_SINGLE + 1]
-	call BCDcpy
-	AT 6, 6
-	ld a, [W_SINGLE + 2]
-	call BCDcpy
-	AT 6, 7
-	ld a, [W_SINGLE + 3]
-	call BCDcpy
-	AT 6, 8
-	ld a, [W_SINGLE + 4]
-	call BCDcpy
-	AT 6, 9
-	ld a, [W_SINGLE + 5]
-	call BCDcpy
+	; draw all scores to screen, ignoring those already used
+	; ie. freeze category scores on the value they were used
+	; and using the fact that all scores are in a contiguous memory space
+	; ordered according to cursor position
 
-	; left-hand side
-	AT 17, 4
-	ld a, [W_2_OFAKIND]
+	; use de to track the address of the next score
+	ld de, W_DICE_SCORES
+
+	; load the first byte at W_USED_SCORES into c
+	ld hl, W_USED_SCORES
+	ld c, [hl]
+
+	; create variable to track which bit of c is being used
+C_BIT SET 0
+
+	; singles - track y coord using Y variable
+Y SET 4
+REPT 6
+	bit C_BIT, c			; if bit is 1, category has been used
+	jr nz, .next_\@			; if category already used, don't draw
+	AT 6, Y				; load vram address into hl
+	ld a, [de]			; load score into a
 	call BCDcpy
-	AT 17, 5
-	ld a, [W_TWOPAIRS]
+.next_\@
+	inc de				; get address of score for next iter
+C_BIT SET C_BIT + 1			; move to next bit of c
+Y SET Y + 1				; draw next score in row below
+ENDR
+
+
+	; left-hand side, using first byte of c
+Y SET 4
+REPT 2
+	bit C_BIT, c
+	jr nz, .next_\@
+	AT 17, Y
+	ld a, [de]
 	call BCDcpy
-	AT 17, 6
-	ld a, [W_3_OFAKIND]
+.next_\@
+	inc de
+C_BIT SET C_BIT + 1
+Y SET Y + 1
+ENDR
+
+
+	; reset C_BIT and load second byte of W_USED_SCORES into c
+C_BIT SET 0
+	ld hl, W_USED_SCORES + 1
+	ld c, [hl]
+
+
+	; left-hand side, second byte
+	; no need to reset Y as it carries on from last loop
+REPT 7
+	bit C_BIT, c
+	jr nz, .loop_\@
+	AT 17, Y
+	ld a, [de]
 	call BCDcpy
-	AT 17, 7
-	ld a, [W_4_OFAKIND]
-	call BCDcpy
-	AT 17, 8
-	ld a, [W_STRAIGHT_LOW]
-	call BCDcpy
-	AT 17, 9
-	ld a, [W_STRAIGHT_HI]
-	call BCDcpy
-	AT 17, 10
-	ld a, [W_FULLHOUSE]
-	call BCDcpy
-	AT 17, 11
-	ld a, [W_CHANCE]
-	call BCDcpy
-	AT 17, 12
-	ld a, [W_YATZY]
-	call BCDcpy
+.loop_\@
+	inc de
+Y SET Y + 1
+C_BIT SET C_BIT + 1
+ENDR
 
 	ret
 
