@@ -13,7 +13,7 @@ RES	:= res
 
 PROJ	:= yatzy
 OUT	:= $(BIN)/$(PROJ)
-EMU	:= bgb
+EMU	:= sameboy
 
 # Find all the source files (.asm) below the src/ dir
 # I don't know how portable this is
