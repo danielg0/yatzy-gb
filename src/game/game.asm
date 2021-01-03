@@ -32,6 +32,11 @@ W_SCORE: DS 2				; stores score of current game as BCD
 					; two bytes as max value is 374
 W_HIGH_SCORE: DS 2			; stores highest game score achieved as
 					; BCD. Reset when game turned off
+W_SINGLE_SUM: DS 2			; stores sum of all scored single
+					; categories as bcd (max is 126)
+					; the last bit of the second byte
+					; stores whether the bonus has been
+					; scored yet
 
 W_USED_SCORES: DS 2			; bit array storing which scoring
 					; categories have been used (order is
@@ -60,6 +65,11 @@ SetupGame::
 	; zero out score
 	xor a				; ld a, 0
 	ld hl, W_SCORE
+	ldi [hl], a
+	ld [hl], a
+
+	; zero out singles total
+	ld hl, W_SINGLE_SUM
 	ldi [hl], a
 	ld [hl], a
 
@@ -211,7 +221,55 @@ DrawHighscores:
 	add $30				; add offset to get to numbers in font
 	ld [hl], a
 
-	ret
+	; draw sum of scored singles categories and the bonus value (if scored)
+	ld hl, W_SINGLE_SUM + 1
+	ld a, [hld]
+	ld c, a				; get hundreds digit and whether bonus
+					; scored yet flag
+	ld a, [hl]			; get tens and units values
+	ld b, a				; store value of a for later
+
+	; if no hundreds column, write bcd value in a to screen
+	bit 1, c			; as ~120 is the max value, only a one
+					; will be stored in the hundreds col
+	jr nz, .drawHundreds
+
+	AT 6, 11
+	call BCDcpy
+
+	; if bonus bit set, write 50 to the bonus section
+	bit 7, c			; bonus bit is last bit
+	ret z				; if zero, return, else continue
+					; and draw bonus score
+
+.drawBonus
+	; draw bonus value (50) to the screen
+	ld a, $50
+	AT 6, 12
+	call BCDcpy
+
+	ret				; VERY IMPORTANT
+
+.drawHundreds
+	; draw 1 to screen next to sum, then increment and draw hundreds
+	; and units column (don't use BCDcpy, as this won't draw the tens
+	; column if it's value is zero)
+	AT 6, 11
+	ld a, $31			; 1 + 0x30 to get an ascii 1
+	ld [hli], a
+	ld a, b				; draw tens column
+	swap a
+	and $0F				; remove units column
+	add $30				; to get an ascii digit
+	ld [hli], a
+	ld a, b				; draw units
+	and $0F
+	add $30
+	ld [hl], a
+
+	; jump back to earlier to draw the bonus score
+	; if sum >= 100, bonus (63) must have already been scored
+	jr .drawBonus
 
 ; draw a text prompt asking the player to press a
 ; must be called during vblank period
@@ -374,10 +432,65 @@ GameAction::
 	add 3				; a = W_CURSOR_POS
 	ld hl, W_DICE_SCORES
 	add bc				; score = [hl]
-	ld a, [hl]			; a holds score of cat next to cursor
+	ld b, [hl]			; b holds score of cat next to cursor
 
+	; if cursor is next to a singles category, add score to total and check
+	; if the bonus is scored
+	ld a, [W_CURSOR_POS]		; assume W_CURSOR_POS > 2
+	cp 9				; if W_CURSOR_POS < 9 add to single sum
+	jr nc, .singleEnd		; so if a >= 9, skip add (no need
+					; to check if bonus scored)
+	; add score to single sum, correcting for bcd format
+	ld a, [W_SINGLE_SUM]
+	add b
+	daa				; will set c flag if overflow occurs
+	ld [W_SINGLE_SUM], a
+	jr nc, .noOverflow		; if overflow occured, inc next byte
+	ld hl, W_SINGLE_SUM + 1
+	ld [hl], %10000001		; as max is 126, overflow will only
+					; occur once during game, so a one
+					; will always be written on overflow.
+					; Also, whenever overflow occurs, the
+					; bonus must have already been scored
+					; so set the bonus scored bit
+
+.noOverflow
+	; if score is greater than bonus, add bonus to this round's score if
+	; not added (this is tracked using the last bit of the second byte of
+	; W_SINGLE_SUM)
+	ld hl, W_SINGLE_SUM + 1		; check if bonus scored yet
+	bit 7, [hl]
+	jr nz, .singleEnd		; if set, bonus already scored
+
+	dec hl				; ld hl, W_SINGLE_SUM
+	ld a, [hl]			; no need to check hundred's column
+					; as required score is 63
+	swap a				; load tens digit into first nibble
+	and $0F				; remove last nibble
+	cp 6				; c flag set if tens column < 6
+	jr c, .singleEnd
+	ld a, [hl]			; repeat for units column
+	and $0F
+	cp 3				; c flag set if units < 3
+	jr c, .singleEnd
+
+	; add bonus to this round's score
+	; there's no need to worry about overflow, as the bonus is only scored
+	; on rounds where a single was scored, the max score of which is 30
+	; (ie. five 6's), giving a total score of 80
+	ld a, $50
+	add b				; this round's score is stored in b
+	daa
+	ld b, a
+
+	; set bonus scored bit
+	inc hl
+	set 7, [hl]
+
+.singleEnd
 	; add score to total score and redraw on screen
 	; must occur during vblank period, which it always will
+	ld a, b				; load score into a
 	ld hl, W_SCORE
 	add [hl]
 	daa				; will set c flag if overflow occurs
@@ -772,7 +885,7 @@ LABEL_TEXT:
 	DB "4'S:", 0			; AT(2, 7)
 	DB "5'S:", 0			; AT(2, 8)
 	DB "6'S:", 0			; AT(2, 9)
-	DB "SUM:", 0			; AT(2, 11)
+	DB "SUM: 0", 0			; AT(2, 11)
 
 	DB "1 PAIR:", 0			; AT(10, 4)
 	DB "2 PAIR:", 0			; AT(10, 5)
