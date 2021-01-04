@@ -76,8 +76,6 @@ Game:
 	ld e, a
 	call GameDPAD
 
-	; if dpad changed, ignore button input
-
 .noDPAD
 	; if a button just pressed, call action
 	; will perform function based on cursor position
