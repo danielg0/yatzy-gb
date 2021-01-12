@@ -86,9 +86,22 @@ Game:
 	ld hl, W_BUTT
 	or [hl]
 	bit 0, a
-	jr nz, .gameLoop		; if a button not pressed
-					; (bit 0, a == 1) break
-	call GameAction
+	call z, GameAction		; if a button was pressed
+					; (bit 0, a == 0) call GameAction func
+
+	; check if the game is over
+	; TODO: reduce calls (at the moment, this is called every frame)
+	call GameOver			; resets c flag if game over
+	jr nc, .gameOver
 
 	jr .gameLoop
+
+.gameOver
+	; wait for vblank, disable screen and jump back to game setup
+	; TODO: display game over message
+	; TODO: decide whether to reseed rng
+	call WaitVBlank
+	ld hl, rLCDC
+	res 7, [hl]			; disable screen
+	jr Game
 

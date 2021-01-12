@@ -108,6 +108,29 @@ SetupGame::
 
 	ret
 
+; return a value indicating whether the game is finished yet
+; @return c flag reset if game is over, overwise it's set
+; @trashes a
+GameOver::
+	; game over if all categories have been used
+	ld a, [W_USED_SCORES]
+	cp $ff
+	jr nz, .GameNotOver		; if all bits 1, all categories used
+	ld a, [W_USED_SCORES + 1]
+	cp $7f				; not all bits are used in 2nd byte
+	jr nz, .GameNotOver
+
+	; if reached here, game is over
+	; set carry flag then invert it to reset it
+	scf
+	ccf
+	ret
+
+.GameNotOver
+	; game not over yet, so set carry flag
+	scf
+	ret
+
 ; draw updated score variables (defined in dice.asm) to the screen
 ; must be called during vblank period/when display is off
 DrawScores::
