@@ -828,61 +828,61 @@ UpdateHeldCursor:
 LoadGameText::
 	ld de, LABEL_TEXT
 
-	AT 2, 1
+	AT 1, 1
 	call Strcpy
 
 	inc de				; get past final null char
-	AT 2, 2
+	AT 1, 2
 	call Strcpy
 
 	inc de
-	AT 2, 4
+	AT 1, 4
 	call Strcpy
 	inc de
-	AT 2, 5
+	AT 1, 5
 	call Strcpy
 	inc de
-	AT 2, 6
+	AT 1, 6
 	call Strcpy
 	inc de
-	AT 2, 7
+	AT 1, 7
 	call Strcpy
 	inc de
-	AT 2, 8
+	AT 1, 8
 	call Strcpy
 	inc de
-	AT 2, 9
+	AT 1, 9
 	call Strcpy
 	inc de
 	AT 2, 11
 	call Strcpy
 
 	inc de
-	AT 10, 4
+	AT 9, 4
 	call Strcpy
 	inc de
-	AT 10, 5
+	AT 9, 5
 	call Strcpy
 	inc de
-	AT 10, 6
+	AT 9, 6
 	call Strcpy
 	inc de
-	AT 10, 7
+	AT 9, 7
 	call Strcpy
 	inc de
-	AT 10, 8
+	AT 9, 8
 	call Strcpy
 	inc de
-	AT 10, 9
+	AT 9, 9
 	call Strcpy
 	inc de
-	AT 10, 10
+	AT 9, 10
 	call Strcpy
 	inc de
-	AT 10, 11
+	AT 9, 11
 	call Strcpy
 	inc de
-	AT 10, 12
+	AT 9, 12
 	call Strcpy
 
 	inc de
@@ -900,25 +900,25 @@ LoadGameText::
 SECTION "Game Data", ROM0
 
 LABEL_TEXT:
-	DB "ROLL", 0			; AT(2, 1)
-	DB "HELD", 0			; AT(2, 2)
-	DB "1'S:", 0			; AT(2, 4)
-	DB "2'S:", 0			; AT(2, 5)
-	DB "3'S:", 0			; AT(2, 6)
-	DB "4'S:", 0			; AT(2, 7)
-	DB "5'S:", 0			; AT(2, 8)
-	DB "6'S:", 0			; AT(2, 9)
+	DB " ROLL", 0			; AT(1, 1)
+	DB " HELD", 0			; AT(1, 1)
+	DB " 1'S: 0", 0			; AT(1, 4)
+	DB " 2'S: 0", 0			; AT(1, 5)
+	DB " 3'S: 0", 0			; AT(1, 6)
+	DB " 4'S: 0", 0			; AT(1, 7)
+	DB " 5'S: 0", 0			; AT(1, 8)
+	DB " 6'S: 0", 0			; AT(1, 9)
 	DB "SUM: 0", 0			; AT(2, 11)
 
-	DB "1 PAIR:", 0			; AT(10, 4)
-	DB "2 PAIR:", 0			; AT(10, 5)
-	DB "3 KIND:", 0			; AT(10, 6)
-	DB "4 KIND:", 0			; AT(10, 7)
-	DB "SMALL :", 0			; AT(10, 8)
-	DB "LARGE :", 0			; AT(10, 9)
-	DB "FULL H:", 0			; AT(10, 10)
-	DB "CHANCE:", 0			; AT(10, 11)
-	DB "YATZY :", 0			; AT(10, 12)
+	DB " 1 PAIR: 0", 0			; AT(9, 4)
+	DB " 2 PAIR: 0", 0			; AT(9, 5)
+	DB " 3 KIND: 0", 0			; AT(9, 6)
+	DB " 4 KIND: 0", 0			; AT(9, 7)
+	DB " SMALL : 0", 0			; AT(9, 8)
+	DB " LARGE : 0", 0			; AT(9, 9)
+	DB " FULL H: 0", 0			; AT(9, 10)
+	DB " CHANCE: 0", 0			; AT(9, 11)
+	DB " YATZY : 0", 0			; AT(9, 12)
 
 	DB "BON: 0", 0			; AT(2, 12)
 	DB "SCORE:       0", 0		; AT(3, 14)
