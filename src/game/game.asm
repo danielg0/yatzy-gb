@@ -253,7 +253,7 @@ DrawHighscores:
 	ld b, a				; store value of a for later
 
 	; if no hundreds column, write bcd value in a to screen
-	bit 1, c			; as ~120 is the max value, only a one
+	bit 0, c			; as 105 is the max value, only a one
 					; will be stored in the hundreds col
 	jr nz, .drawHundreds
 
@@ -470,7 +470,7 @@ GameAction::
 	ld [W_SINGLE_SUM], a
 	jr nc, .noOverflow		; if overflow occured, inc next byte
 	ld hl, W_SINGLE_SUM + 1
-	ld [hl], %10000001		; as max is 126, overflow will only
+	ld [hl], %10000001		; as max is 105, overflow will only
 					; occur once during game, so a one
 					; will always be written on overflow.
 					; Also, whenever overflow occurs, the
