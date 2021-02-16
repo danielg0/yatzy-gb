@@ -91,12 +91,12 @@ Game:
 
 	; check if the game is over
 	; TODO: reduce calls (at the moment, this is called every frame)
-	call GameOver			; resets c flag if game over
-	jr nc, .gameOver
+	call IsGameOver			; resets c flag if game over
+	jr nc, GameOver
 
 	jr .gameLoop
 
-.gameOver
+GameOver:
 	; wait for vblank, disable screen and jump back to game setup
 	; TODO: display game over message
 	; TODO: decide whether to reseed rng

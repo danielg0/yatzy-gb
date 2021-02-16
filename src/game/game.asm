@@ -98,7 +98,7 @@ SetupGame::
 ; return a value indicating whether the game is finished yet
 ; @return c flag reset if game is over, overwise it's set
 ; @trashes a
-GameOver::
+IsGameOver::
 	; game over if all categories have been used
 	ld a, [W_USED_SCORES]
 	cp $ff
