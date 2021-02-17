@@ -86,15 +86,17 @@ Game:
 	ld hl, W_BUTT
 	or [hl]
 	bit 0, a
-	call z, GameAction		; if a button was pressed
-					; (bit 0, a == 0) call GameAction func
+	jr nz, .gameLoop		; if a button not pressed
+					; (bit 0, a != 0) continue game loop
+
+	; a button pressed, so call GameAction then check if game over
+	call GameAction
 
 	; check if the game is over
-	; TODO: reduce calls (at the moment, this is called every frame)
+	; the game can only be over following an a button press, so reduce
+	; calls by only checking after one has occurred
 	call IsGameOver			; resets c flag if game over
-	jr nc, GameOver
-
-	jr .gameLoop
+	jr c, .gameLoop			; only continue loop if game not over
 
 GameOver:
 	; wait for vblank, disable screen and jump back to game setup
