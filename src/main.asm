@@ -98,10 +98,48 @@ Game:
 
 GameOver:
 	; wait for vblank, disable screen and jump back to game setup
-	; TODO: display game over message
 	; TODO: decide whether to reseed rng
 	call WaitVBlank
 	ld hl, rLCDC
 	res 7, [hl]			; disable screen
+
+	; display game over message
+	call DrawGameOver
+
+	ld hl, rLCDC
+	set 7, [hl]			; enable screen
+
+.gameOverLoop
+	; wait for a vblank before checking input
+	call WaitVBlank
+
+	; get joypad input and call function based on values
+	call ReadJoypad
+
+	; check if a or b button pressed
+	; inputs changed = W_BUTT || !W_BUTT_OLD
+	; inputs changed = W_BUTT || (W_BUTT_OLD xor $FF)
+	ld a, [W_BUTT_OLD]
+	cpl				; a = a xor $FF
+	ld hl, W_BUTT
+	or [hl]
+	bit 0, a
+	jr z, .aPressed
+	bit 1, a
+	jr z, .bPressed
+
+	; if no input given, loop
+	jr .gameOverLoop
+
+.aPressed
+	; start new game
+	; disable screen - no need to wait for vblank
+	ld hl, rLCDC
+	res 7, [hl]
+	call CleanupGameOver
 	jr Game
+
+.bPressed
+	; TODO - menu
+	jr .bPressed
 
