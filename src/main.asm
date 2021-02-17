@@ -101,7 +101,6 @@ Game:
 GameOver:
 	; wait for vblank, disable screen and jump back to game setup
 	; TODO: decide whether to reseed rng
-	call WaitVBlank
 	ld hl, rLCDC
 	res 7, [hl]			; disable screen
 
