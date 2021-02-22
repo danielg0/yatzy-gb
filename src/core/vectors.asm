@@ -27,3 +27,6 @@ SECTION "Interrup Vectors", ROM0[$40]
 ; joypad handler
 	reti
 
+; fill up to entry point
+	DS $100 - @, 0
+

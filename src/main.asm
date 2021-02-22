@@ -4,12 +4,12 @@ SECTION "Header", ROM0[$100]
 
 EntryPoint:
 	di				; disable interrupts
-	jp Setup
+	jr Setup
 
 	DS $150 - @, 0			; fill header with zeros, rgbfix will
 					; handle it
 
-SECTION "Main", ROM0
+SECTION "Main", ROM0[$150]
 
 Setup:
 	; enable vblank interrupts - used for WaitVBlank
