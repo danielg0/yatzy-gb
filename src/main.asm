@@ -44,15 +44,53 @@ Setup:
 	dec b
 	jr nz, .ninLoop
 
-Game:
-	call LoadGameTiles
-	call LoadGameText
-	call SetupGame
-
 	ld hl, rBGP
 	ld [hl], %11100100		; setup BG palette
 
+	; load game and menu tiles into vram
+	; as they don't overlap, they only need to be loaded once
+	call LoadMenuTiles
+	call LoadGameTiles
+
+Menu:
+	; load tiles and draw onto screen
+	call LoadMenuScreen
+
+	; enable screen
 	ld hl, rLCDC
+	set 3, [hl]			; draw SCRN_1 background
+	res 4, [hl]			; set vram tile addressing mode
+	set 7, [hl]			; enable screen
+
+.menuLoop
+	; wait for frame end and check joypad
+	call WaitVBlank
+	call ReadJoypad
+
+	; check if start pressed yet
+	; inputs changed = W_BUTT || !W_BUTT_OLD
+	; inputs changed = W_BUTT || (W_BUTT_OLD xor $FF)
+	ld a, [W_BUTT_OLD]
+	cpl				; a = a xor $FF
+	ld hl, W_BUTT
+	or [hl]
+
+	; start is pressed if bit 3 is 0
+	; so if not-zero, continue looping
+	bit 3, a
+	jr nz, .menuLoop
+
+	; else, disable screen and fall through to game
+	ld hl, rLCDC
+	res 7, [hl]
+
+Game:
+	call LoadGameText
+	call SetupGame
+
+	ld hl, rLCDC
+	res 3, [hl]			; set correct bg layer
+	set 4, [hl]			; set vram tile addressing mode
 	set 7, [hl]			; enable screen
 
 .gameLoop
@@ -141,6 +179,9 @@ GameOver:
 	jr Game
 
 .bPressed
-	; TODO - menu
-	jr .bPressed
+	; disable screen and goto menu
+	ld hl, rLCDC
+	res 7, [hl]
+	call CleanupGameOver
+	jp Menu
 
