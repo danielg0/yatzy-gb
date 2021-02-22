@@ -141,7 +141,7 @@ Y SET 4
 REPT 6
 	bit C_BIT, c			; if bit is 1, category has been used
 	jr nz, .next_\@			; if category already used, don't draw
-	AT 6, Y				; load vram address into hl
+	AT _SCRN0, 6, Y			; load vram address into hl
 	ld a, [de]			; load score into a
 	call BCDcpy
 .next_\@
@@ -156,7 +156,7 @@ Y SET 4
 REPT 2
 	bit C_BIT, c
 	jr nz, .next_\@
-	AT 17, Y
+	AT _SCRN0, 17, Y
 	ld a, [de]
 	call BCDcpy
 .next_\@
@@ -177,7 +177,7 @@ C_BIT SET 0
 REPT 7
 	bit C_BIT, c
 	jr nz, .loop_\@
-	AT 17, Y
+	AT _SCRN0, 17, Y
 	ld a, [de]
 	call BCDcpy
 .loop_\@
@@ -191,7 +191,7 @@ ENDR
 ; draw highscores and current game score to the screen
 ; note: don't confuse with DrawScores (maybe swap them at some point)
 DrawHighscores:
-	AT 14, 14			; load pos of score zone into hl
+	AT _SCRN0, 14, 14		; load pos of score zone into hl
 
 	ld a, [W_SCORE + 1]		; load hundreds column into a
 	or a				; compare to zero
@@ -244,7 +244,7 @@ DrawHighscores:
 					; will be stored in the hundreds col
 	jr nz, .drawHundreds
 
-	AT 6, 11
+	AT _SCRN0, 6, 11
 	call BCDcpy
 
 	; if bonus bit set, write 50 to the bonus section
@@ -255,7 +255,7 @@ DrawHighscores:
 .drawBonus
 	; draw bonus value (50) to the screen
 	ld a, $50
-	AT 6, 12
+	AT _SCRN0, 6, 12
 	call BCDcpy
 
 	ret				; VERY IMPORTANT
@@ -264,7 +264,7 @@ DrawHighscores:
 	; draw 1 to screen next to sum, then increment and draw hundreds
 	; and units column (don't use BCDcpy, as this won't draw the tens
 	; column if it's value is zero)
-	AT 6, 11
+	AT _SCRN0, 6, 11
 	ld a, $31			; 1 + 0x30 to get an ascii 1
 	ld [hli], a
 	ld a, b				; draw tens column
@@ -285,7 +285,7 @@ DrawHighscores:
 ; must be called during vblank period
 DrawPrompt::
 	ld de, PROMPT_TEXT
-	AT 8, 1				; load screen pos into hl
+	AT _SCRN0, 8, 1			; load screen pos into hl
 	call Strcpy
 	ret
 
@@ -294,7 +294,7 @@ DrawPrompt::
 DrawDice::
 	ld de, DICE
 	ld a, [de]			; use ascii hidden chars for dice
-	AT 8, 1
+	AT _SCRN0, 8, 1
 	ld [hli], a
 
 REPT 4
@@ -314,7 +314,7 @@ DrawHeld:
 	; load in held bit array (defined in dice.asm)
 	ld a, [DICE_HELD]
 	; load in position of first dice
-	AT 8, 2
+	AT _SCRN0, 8, 2
 
 I_DIE SET 0
 REPT 5
@@ -815,71 +815,71 @@ UpdateHeldCursor:
 LoadGameText::
 	ld de, LABEL_TEXT
 
-	AT 1, 1
+	AT _SCRN0, 1, 1
 	call Strcpy
 
 	inc de				; get past final null char
-	AT 1, 2
+	AT _SCRN0, 1, 2
 	call Strcpy
 
 	inc de
-	AT 1, 4
+	AT _SCRN0, 1, 4
 	call Strcpy
 	inc de
-	AT 1, 5
+	AT _SCRN0, 1, 5
 	call Strcpy
 	inc de
-	AT 1, 6
+	AT _SCRN0, 1, 6
 	call Strcpy
 	inc de
-	AT 1, 7
+	AT _SCRN0, 1, 7
 	call Strcpy
 	inc de
-	AT 1, 8
+	AT _SCRN0, 1, 8
 	call Strcpy
 	inc de
-	AT 1, 9
+	AT _SCRN0, 1, 9
 	call Strcpy
 	inc de
-	AT 2, 11
-	call Strcpy
-
-	inc de
-	AT 9, 4
-	call Strcpy
-	inc de
-	AT 9, 5
-	call Strcpy
-	inc de
-	AT 9, 6
-	call Strcpy
-	inc de
-	AT 9, 7
-	call Strcpy
-	inc de
-	AT 9, 8
-	call Strcpy
-	inc de
-	AT 9, 9
-	call Strcpy
-	inc de
-	AT 9, 10
-	call Strcpy
-	inc de
-	AT 9, 11
-	call Strcpy
-	inc de
-	AT 9, 12
+	AT _SCRN0, 2, 11
 	call Strcpy
 
 	inc de
-	AT 2, 12
+	AT _SCRN0, 9, 4
 	call Strcpy
 	inc de
-	AT 3, 14
+	AT _SCRN0, 9, 5
 	call Strcpy
 	inc de
-	AT 3, 15
+	AT _SCRN0, 9, 6
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 7
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 8
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 9
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 10
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 11
+	call Strcpy
+	inc de
+	AT _SCRN0, 9, 12
+	call Strcpy
+
+	inc de
+	AT _SCRN0, 2, 12
+	call Strcpy
+	inc de
+	AT _SCRN0, 3, 14
+	call Strcpy
+	inc de
+	AT _SCRN0, 3, 15
 	call Strcpy
 
 	ret

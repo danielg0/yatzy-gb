@@ -7,11 +7,11 @@ SECTION "Over", ROM0
 ; draw's over the game roll and held columns, whilst preserving the scored
 ; categories, their values as well as the score and highscore columns
 DrawGameOver::
-	AT 1, 1
+	AT _SCRN0, 1, 1
 	ld de, LINE1
 	call Strcpy
 
-	AT 1, 2
+	AT _SCRN0, 1, 2
 	inc de				; ld de, LINE2
 	call Strcpy
 
@@ -21,13 +21,13 @@ DrawGameOver::
 CleanupGameOver::
 	xor a				; ld a, $00
 
-	AT 1, 1
+	AT _SCRN0, 1, 1
 REPT 18
 	ld [hl], a
 	inc hl
 ENDR
 
-	AT 1, 2
+	AT _SCRN0, 1, 2
 REPT 18
 	ld [hl], a
 	inc hl

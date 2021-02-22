@@ -1,9 +1,9 @@
 ; Macros
 
-; AT(X, Y)
-; load into hl the VRAM address for a given position on _SCRN0
+; AT(SCREEN, X, Y)
+; load into hl the VRAM address for a given position on a given screen
 AT: MACRO
-	ld hl, _SCRN0 + (SCRN_VY_B * \2) + \1
+	ld hl, \1 + (SCRN_VY_B * \3) + \2
 ENDM
 
 ; DW_AT(X, Y)
