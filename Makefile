@@ -1,6 +1,10 @@
 # Makefile for creating yatzy-gb
 # Daniel G - MIT License
 
+# Set a custom emulator command
+# Path of ROM will be appended to command
+EMU	:= sameboy
+
 RGBASM	:= rgbasm
 RGBLINK	:= rgblink
 RGBFIX	:= rgbfix
@@ -13,7 +17,6 @@ RES	:= res
 
 PROJ	:= yatzy
 OUT	:= $(BIN)/$(PROJ)
-EMU	:= sameboy
 
 # Find all the source files (.asm) below the src/ dir
 # I don't know how portable this is
