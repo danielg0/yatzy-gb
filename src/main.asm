@@ -28,6 +28,11 @@ Setup:
 	ld [W_DPAD_OLD], a
 	ld [W_BUTT_OLD], a
 
+	; disable sound controller as unused
+	; according to pan docs, saves ~16% GB power consumption
+	xor a				; ld a, $00
+	ld [rAUDENA], a
+
 	call WaitVBlank			; wait for VBlank before disabling
 					; screen in in order to perform
 					; setup/load in tiles
