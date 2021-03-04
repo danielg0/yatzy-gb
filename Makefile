@@ -5,6 +5,10 @@
 # Path of ROM will be appended to command
 EMU	:= sameboy
 
+# Set a custom seed for the rng
+# -1 for a random seed
+RNG	:= -1
+
 RGBASM	:= rgbasm
 RGBLINK	:= rgblink
 RGBFIX	:= rgbfix
@@ -43,7 +47,7 @@ $(OUT).map $(OUT).sym $(OUT).gb: $(OBJFILE)
 
 $(BIN)/obj/%.o: $(SRC)/%.asm
 	$(MKDIR) -p $(dir $@)
-	$(RGBASM) -o $@ -i $(RES) -i $(INC) $<
+	$(RGBASM) -o $@ -i $(RES) -i $(INC) -D RNG=$(RNG) $<
 
 clean:
 	rm -r $(BIN)

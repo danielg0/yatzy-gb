@@ -128,6 +128,8 @@ REPT 5
 					; else, roll dice and get new value
 	call rand			; load random 16bit value into bc
 					; but we'll only use c
+	ld c, a				; use value returned into a
+					; as entropy is better
 	MOD 6, c			; perform modulus to get a value
 					; between 1 and 6
 

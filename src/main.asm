@@ -17,10 +17,6 @@ Setup:
 	ld [hl], IEF_VBLANK
 	ei
 
-	; debug - seed rng with constant value to get same values every time
-	ld bc, 1
-	call srand
-
 	; clear WRAM variables
 	ld a, $FF			; reset joypad values to none down
 	ld [W_DPAD], a
@@ -92,6 +88,18 @@ Menu:
 Game:
 	call LoadGameText
 	call SetupGame
+
+	; seed rng used for dice rolls
+	; if RNG value set to -1, use clock time
+IF RNG == -1
+	ld b, $00
+	ld a, [rDIV]
+	ld c, a				; bc now contains 16 bit rDIV
+	; otherwise use the value in RNG as a seed
+ELSE
+	ld bc, RNG
+ENDC
+	call srand
 
 	ld hl, rLCDC
 	res 3, [hl]			; set correct bg layer
