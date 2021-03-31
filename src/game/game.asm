@@ -474,14 +474,11 @@ GameAction::
 
 	dec hl				; ld hl, W_SINGLE_SUM
 	ld a, [hl]			; no need to check hundred's column
-					; as required score is 63
-	swap a				; load tens digit into first nibble
-	and $0F				; remove last nibble
-	cp 6				; c flag set if tens column < 6
-	jr c, .singleEnd
-	ld a, [hl]			; repeat for units column
-	and $0F
-	cp 3				; c flag set if units < 3
+					; as max score for singles in one round
+					; is 30, so singles sum would already
+					; be at least 70, and have already
+					; scored the bonus
+	cp $63				; c flag set if units < 63
 	jr c, .singleEnd
 
 	; add bonus to this round's score
