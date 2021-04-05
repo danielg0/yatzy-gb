@@ -879,6 +879,50 @@ LoadGameText::
 	AT _SCRN0, 3, 15
 	call Strcpy
 
+	; Draw game border
+	; Corners
+	AT _SCRN0, 0, 0
+	ld [hl], $0C
+	AT _SCRN0, 19, 0
+	ld [hl], $0D
+	AT _SCRN0, 19, 17
+	ld [hl], $0E
+	AT _SCRN0, 0, 17
+	ld [hl], $0F
+
+	; Borders
+	; Top border
+	AT _SCRN0, 1, 0
+	ld a, $08
+REPT 18
+	ld [hli], a
+ENDR
+
+	; Right Border
+	AT _SCRN0, 19, 1
+	ld a, $09
+	ld bc, $20
+REPT 16
+	ld [hl], a
+	add hl, bc
+ENDR
+
+	; Bottom Border
+	AT _SCRN0, 1, 17
+	ld a, $0A
+REPT 18
+	ld [hli], a
+ENDR
+
+	; Left Border
+	AT _SCRN0, 0, 1
+	ld a, $0B
+	; ld bc, 19			; unnecessary - see right border
+REPT 16
+	ld [hl], a
+	add hl, bc
+ENDR
+
 	ret
 
 SECTION "Game Data", ROM0
