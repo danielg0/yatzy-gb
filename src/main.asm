@@ -53,15 +53,23 @@ Setup:
 	call LoadMenuTiles
 	call LoadGameTiles
 
-Menu:
-	; load tiles and draw onto screen
+	; draw menu to second map
 	call LoadMenuScreen
+
+	; draw fixed game text to first map
+	call LoadGameText
 
 	; enable screen
 	ld hl, rLCDC
+	set 7, [hl]
+
+	; fallthrough to menu
+
+Menu:
+	; set LCDC options
+	ld hl, rLCDC
 	set 3, [hl]			; draw SCRN_1 background
 	res 4, [hl]			; set vram tile addressing mode
-	set 7, [hl]			; enable screen
 
 .menuLoop
 	; wait for frame end and check joypad
@@ -81,12 +89,10 @@ Menu:
 	bit 3, a
 	jr nz, .menuLoop
 
-	; else, disable screen and fall through to game
-	ld hl, rLCDC
-	res 7, [hl]
+	; else, fallthrough to game
 
 Game:
-	call LoadGameText
+	; reset game variables
 	call SetupGame
 
 	; seed rng used for dice rolls
@@ -101,10 +107,10 @@ ELSE
 ENDC
 	call srand
 
+	; set LCDC settings
 	ld hl, rLCDC
 	res 3, [hl]			; set correct bg layer
 	set 4, [hl]			; set vram tile addressing mode
-	set 7, [hl]			; enable screen
 
 .gameLoop
 	; wait for a vblank before checking input
@@ -150,16 +156,12 @@ ENDC
 	jr c, .gameLoop			; only continue loop if game not over
 
 GameOver:
-	; wait for vblank, disable screen and jump back to game setup
-	; TODO: decide whether to reseed rng
-	ld hl, rLCDC
-	res 7, [hl]			; disable screen
+	; wait extra frame before drawing game over
+	; ensures there's enough time to draw and avoids disabling screen
+	call WaitVBlank
 
 	; display game over message
 	call DrawGameOver
-
-	ld hl, rLCDC
-	set 7, [hl]			; enable screen
 
 .gameOverLoop
 	; wait for a vblank before checking input
@@ -185,16 +187,11 @@ GameOver:
 
 .aPressed
 	; start new game
-	; disable screen - no need to wait for vblank
-	ld hl, rLCDC
-	res 7, [hl]
 	call CleanupGameOver
 	jr Game
 
 .bPressed
 	; disable screen and goto menu
-	ld hl, rLCDC
-	res 7, [hl]
 	call CleanupGameOver
 	jp Menu
 

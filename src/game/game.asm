@@ -65,6 +65,39 @@ SetupGame::
 	ldi [hl], a
 	ld [hl], a
 
+	; draw zeros next to sum, bonus and high score labels
+	; done in setup to draw over previous game's score
+	AT _SCRN0, 6, 11
+	ld [hli], a			; a = 0 which is blank character
+	ld [hl], "0"
+	AT _SCRN0, 6, 12
+	ld [hli], a
+	ld [hl], "0"
+
+	AT _SCRN0, 14, 14
+	ld [hli], a
+	ld [hli], a
+	ld [hl], "0"
+
+	; erase all used category markers
+	ld hl, CURSOR_TABLE_CATEGORIES
+REPT 15
+	ld a, [hli]
+	ld c, a
+	ld a, [hli]
+	ld b, a
+	xor a				; ld a, 0
+	ld [bc], a
+ENDR
+
+	; draw ROLL and HOLD buttons here so it appears after game over
+	ld de, LABEL_TEXT_ROLLHELD
+	AT _SCRN0, 2, 1
+	call Strcpy
+	inc de				; get past final null char
+	AT _SCRN0, 2, 2
+	call Strcpy
+
 	; setup cursor position
 	; ensure a cursor pos change while avoiding overwriting text, etc.
 	ld hl, W_CURSOR_POS
@@ -812,61 +845,65 @@ UpdateHeldCursor:
 LoadGameText::
 	ld de, LABEL_TEXT
 
-	AT _SCRN0, 1, 1
+	; This code used to draw ROLL/HELD text, but this isn't needed anymore
+	; as they're drawn in the setup function.
+
+;	AT _SCRN0, 1, 1
+;	call Strcpy
+;	inc de
+;	AT _SCRN0, 1, 2
+;	call Strcpy
+;	inc de
+
+	AT _SCRN0, 2, 4
 	call Strcpy
 
 	inc de				; get past final null char
-	AT _SCRN0, 1, 2
+	AT _SCRN0, 2, 5
 	call Strcpy
 
 	inc de
-	AT _SCRN0, 1, 4
+	AT _SCRN0, 2, 6
 	call Strcpy
 	inc de
-	AT _SCRN0, 1, 5
+	AT _SCRN0, 2, 7
 	call Strcpy
 	inc de
-	AT _SCRN0, 1, 6
+	AT _SCRN0, 2, 8
 	call Strcpy
 	inc de
-	AT _SCRN0, 1, 7
-	call Strcpy
-	inc de
-	AT _SCRN0, 1, 8
-	call Strcpy
-	inc de
-	AT _SCRN0, 1, 9
+	AT _SCRN0, 2, 9
 	call Strcpy
 	inc de
 	AT _SCRN0, 2, 11
 	call Strcpy
 
 	inc de
-	AT _SCRN0, 9, 4
+	AT _SCRN0, 10, 4
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 5
+	AT _SCRN0, 10, 5
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 6
+	AT _SCRN0, 10, 6
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 7
+	AT _SCRN0, 10, 7
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 8
+	AT _SCRN0, 10, 8
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 9
+	AT _SCRN0, 10, 9
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 10
+	AT _SCRN0, 10, 10
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 11
+	AT _SCRN0, 10, 11
 	call Strcpy
 	inc de
-	AT _SCRN0, 9, 12
+	AT _SCRN0, 10, 12
 	call Strcpy
 
 	inc de
@@ -927,29 +964,30 @@ ENDR
 
 SECTION "Game Data", ROM0
 
+LABEL_TEXT_ROLLHELD:
+	DB "ROLL", 0			; AT(2, 1)
+	DB "HELD", 0			; AT(2, 1)
 LABEL_TEXT:
-	DB " ROLL", 0			; AT(1, 1)
-	DB " HELD", 0			; AT(1, 1)
-	DB " 1'S: 0", 0			; AT(1, 4)
-	DB " 2'S: 0", 0			; AT(1, 5)
-	DB " 3'S: 0", 0			; AT(1, 6)
-	DB " 4'S: 0", 0			; AT(1, 7)
-	DB " 5'S: 0", 0			; AT(1, 8)
-	DB " 6'S: 0", 0			; AT(1, 9)
-	DB "SUM: 0", 0			; AT(2, 11)
+	DB "1'S: 0", 0			; AT(2, 4)
+	DB "2'S: 0", 0			; AT(2, 5)
+	DB "3'S: 0", 0			; AT(2, 6)
+	DB "4'S: 0", 0			; AT(2, 7)
+	DB "5'S: 0", 0			; AT(2, 8)
+	DB "6'S: 0", 0			; AT(2, 9)
+	DB "SUM:", 0			; AT(2, 11)
 
-	DB " 1 PAIR: 0", 0			; AT(9, 4)
-	DB " 2 PAIR: 0", 0			; AT(9, 5)
-	DB " 3 KIND: 0", 0			; AT(9, 6)
-	DB " 4 KIND: 0", 0			; AT(9, 7)
-	DB " SMALL : 0", 0			; AT(9, 8)
-	DB " LARGE : 0", 0			; AT(9, 9)
-	DB " FULL H: 0", 0			; AT(9, 10)
-	DB " CHANCE: 0", 0			; AT(9, 11)
-	DB " YATZY : 0", 0			; AT(9, 12)
+	DB "1 PAIR: 0", 0			; AT(10, 4)
+	DB "2 PAIR: 0", 0			; AT(10, 5)
+	DB "3 KIND: 0", 0			; AT(10, 6)
+	DB "4 KIND: 0", 0			; AT(10, 7)
+	DB "SMALL : 0", 0			; AT(10, 8)
+	DB "LARGE : 0", 0			; AT(10, 9)
+	DB "FULL H: 0", 0			; AT(10, 10)
+	DB "CHANCE: 0", 0			; AT(10, 11)
+	DB "YATZY : 0", 0			; AT(10, 12)
 
-	DB "BON: 0", 0			; AT(2, 12)
-	DB "SCORE:       0", 0		; AT(3, 14)
+	DB "BON:", 0			; AT(2, 12)
+	DB "SCORE:", 0			; AT(3, 14)
 	DB "HIGHSCORE:   0", 0		; AT(3, 15)
 
 
@@ -961,6 +999,7 @@ CURSOR_TABLE:
 	DW_AT 1, 1			; ROLL
 	DW_AT 1, 2			; HELD
 
+CURSOR_TABLE_CATEGORIES:
 	; singles
 	DW_AT 1, 4			; 1'S
 	DW_AT 1, 5			; 2's
