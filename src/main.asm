@@ -58,6 +58,8 @@ Setup:
 
 	; draw fixed game text to first map
 	call LoadGameText
+	; setup first game so all graphics are present for transition
+	call SetupGame
 
 	; enable screen
 	ld hl, rLCDC
@@ -89,12 +91,10 @@ Menu:
 	bit 3, a
 	jr nz, .menuLoop
 
-	; else, fallthrough to game
+	; else, do slide transition and fallthrough to game
+	call Transition
 
 Game:
-	; reset game variables
-	call SetupGame
-
 	; seed rng used for dice rolls
 	; if RNG value set to -1, use clock time
 IF RNG == -1
@@ -185,13 +185,123 @@ GameOver:
 	; if no input given, loop
 	jr .gameOverLoop
 
+	; otherwise, restart/end game based on button pressed
+	; push destination to stack so that return acts like a jp
+	; this saves repeating various cleanup calls
 .aPressed
 	; start new game
-	call CleanupGameOver
-	jr Game
-
+	ld hl, Game
+	jr .gameOver
 .bPressed
-	; disable screen and goto menu
+	; transition to menu
+	; done now so that game over message is still visible during transition
+	call Transition
+
+	ld hl, Menu
+	; fallthrough to .gameOver
+.gameOver
+	; hl just set to where to jp to next
+	push hl
+
+	; draw over game over message
 	call CleanupGameOver
-	jp Menu
+	; setup next game
+	call SetupGame
+
+	; jps to label just pushed to stack
+	ret
+
+; Display animation transitioning from _SCRN1->_SCRN0 or vice versa
+Transition:
+	; use bit 3 in rLCDC to determine screen we're transitioning from
+	; use this to set various constants used in the function
+	ld a, [rLCDC]
+	bit 3, a
+	jr z, .gameToMenu
+.menuToGame
+	; use d register to track the y position of the seam
+	; will go from SCRN_Y - 4 to 0 if currently on SCRN_1, vice versa
+	; otherwise. the minus 4 is so that subtracting 3 to get LYC doesn't
+	; give negative value
+	ld d, SCRN_Y - 4
+	; use b to track the value to end the loop on
+	ld b, 0
+	; use c to track value add to d to get the value for LYC
+	ld c, 3
+	; use e to track the number added to d each loop iteration
+	ld e, -2
+	jr .constSet
+.gameToMenu
+	ld d, 0
+	ld b, SCRN_Y - 4
+	ld c, -3
+	ld e, 2
+
+	; as not on menu screen currently, switch to it
+	; this is because the menu screen is always drawn at the top
+	xor %00011000			; a holds value of rLCDC from earlier
+	ld [rLCDC], a
+.constSet
+
+	; enable stat LYC=LY interrupts
+	ld hl, rSTAT
+	set 6, [hl]
+	ld hl, rIE
+	set 1, [hl]
+
+	; preload rLCDC address into hl
+	; saves cycles after stat interrupt
+	ld hl, rLCDC
+
+	; preload bitmask for flipping SCRN&Tiles into C
+	; saves cycles during stat interrupt
+	ld c, %00011000
+
+.loop
+	; set line to interrupt on, using e constant set earlier
+	ld a, d
+	add 3
+	ldh [rLYC], a
+
+	; calculate new value for scroll y
+	; use cycles now to save them after stat interrupt
+	xor a
+	sub d
+
+	halt				; suspend cpu and wait til LY=LYC
+					; ie. wait til stat interrupt
+
+	; assign new value for scroll y
+	ldh [rSCY], a
+
+	; swap which screen/tile bank is being used
+	; always swap from SCRN1 to SCRN0
+	ld a, [hl]
+	xor c
+	ld [hl], a
+
+	halt				; suspend cpu til vblank
+
+	; change screen being used, tile bank and value of scroll y
+	; always change from SCRN0 to SCRN1
+	ldh a, [rLCDC]
+	xor c
+	ldh [rLCDC], a
+	xor a				; ld a, 0
+	ldh [rSCY], a
+
+	; add difference to d and if not yet zero, loop
+	ld a, d
+	add e				; sets z flag if d now 0
+	ld d, a
+	cp a, b
+	jr nz, .loop
+
+	; disable stat LYC=LY interrupts
+	ld hl, rSTAT
+	res 6, [hl]
+	ld hl, rIE
+	res 1, [hl]
+
+	ret
 

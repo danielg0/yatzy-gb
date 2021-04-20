@@ -65,19 +65,44 @@ SetupGame::
 	ldi [hl], a
 	ld [hl], a
 
+	; load number for a "0" into d to save cycles
+	ld d, "0"
+
 	; draw zeros next to sum, bonus and high score labels
 	; done in setup to draw over previous game's score
+	; performed manually as it's quicker than calling functions and means
+	; it all fits in vblank
 	AT _SCRN0, 6, 11
 	ld [hli], a			; a = 0 which is blank character
-	ld [hl], "0"
+	ld [hl], d
 	AT _SCRN0, 6, 12
 	ld [hli], a
-	ld [hl], "0"
+	ld [hl], d
 
 	AT _SCRN0, 14, 14
 	ld [hli], a
 	ld [hli], a
-	ld [hl], "0"
+	ld [hl], d
+
+	; draw zeros next to all scoring categories
+	; similar reasons to above
+	; iterate over left categories column
+	AT _SCRN0, 6, 4
+	ld bc, SCRN_VX_B - 1		; added to hl each iter to get next row
+REPT 6
+	ld [hli], a			; a = 0, null tile
+	ld [hl], d
+	add hl, bc
+ENDR
+
+	; iterate over right categories
+	AT _SCRN0, 17, 4
+	;ld bc, SCRN_X_B - 1
+REPT 9
+	ld [hli], a
+	ld [hl], d
+	add hl, bc
+ENDR
 
 	; erase all used category markers
 	ld hl, CURSOR_TABLE_CATEGORIES
@@ -101,9 +126,9 @@ ENDR
 	; setup cursor position
 	; ensure a cursor pos change while avoiding overwriting text, etc.
 	ld hl, W_CURSOR_POS
-	ld [hl], CURSOR_MAX
-	ld a, CURSOR_MIN
-	call UpdateCursor
+	ld [hl], CURSOR_MIN
+	AT _SCRN0, 1, 1
+	ld [hl], ">"
 
 	; lock cursor in position next to roll button
 	; don't allow player to score/change held until they've rolled the dice
