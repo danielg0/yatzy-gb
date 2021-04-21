@@ -36,7 +36,7 @@ for Yatzy](https://wikipedia.org/wiki/Yatzy).
 ## Building
 
 Requires [RGBDS](https://github.com/gbdev/rgbds) to be installed and in your
-`$PATH`. Built using v0.4.2 - older versions may work, but I haven't tested
+`$PATH`. Built using v0.5.0 - older versions may work, but I haven't tested
 them. The provided `Makefile` works on Linux, though I haven't had the chance
 to test on either MacOS or Windows.
 

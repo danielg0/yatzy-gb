@@ -499,7 +499,7 @@ GameAction::
 	ld b, $00			; bc now contains 16bit W_CURSOR_POS-3
 	add 3				; a = W_CURSOR_POS
 	ld hl, W_DICE_SCORES
-	add bc				; score = [hl]
+	add hl, bc			; score = [hl]
 	ld b, [hl]			; b holds score of cat next to cursor
 
 	; if cursor is next to a singles category, add score to total and check
