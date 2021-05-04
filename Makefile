@@ -32,10 +32,11 @@ OBJFILE	:= $(patsubst $(SRC)/%.asm, $(BIN)/obj/%.o, $(SRCFILE))
 all: fix
 
 fix: $(OUT).gb
-	$(RGBFIX) -jvp 0 \
+	$(RGBFIX) -jv \
 	--title "YATZY" \
 	--game-id "DG0 " \
 	--old-licensee 51 \
+	--pad-value 0xff \
 	$(OUT).gb
 
 $(OUT).map $(OUT).sym $(OUT).gb: $(OBJFILE)
@@ -43,6 +44,7 @@ $(OUT).map $(OUT).sym $(OUT).gb: $(OBJFILE)
 	--map $(OUT).map \
 	--sym $(OUT).sym \
 	--output $(OUT).gb \
+	--pad 0xff \
 	$(OBJFILE)
 
 $(BIN)/obj/%.o: $(SRC)/%.asm
