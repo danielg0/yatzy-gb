@@ -32,7 +32,7 @@ OBJFILE	:= $(patsubst $(SRC)/%.asm, $(BIN)/obj/%.o, $(SRCFILE))
 all: fix
 
 fix: $(OUT).gb
-	$(RGBFIX) -jv \
+	$(RGBFIX) -jvc \
 	--title "YATZY" \
 	--game-id "DG0 " \
 	--old-licensee 51 \

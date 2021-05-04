@@ -48,6 +48,20 @@ Setup:
 	ld hl, rBGP
 	ld [hl], %11100100		; setup BG palette
 
+	; setup color palette
+	ld hl, rBCPD
+	ld [hl], $FC
+	ld [hl], $6B
+
+	ld [hl], $11
+	ld [hl], $3B
+
+	ld [hl], $A6
+	ld [hl], $29
+
+	ld [hl], $61
+	ld [hl], $10
+
 	; load game and menu tiles into vram
 	; as they don't overlap, they only need to be loaded once
 	call LoadMenuTiles
