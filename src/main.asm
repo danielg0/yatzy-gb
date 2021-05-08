@@ -170,10 +170,6 @@ ENDC
 	jr c, .gameLoop			; only continue loop if game not over
 
 GameOver:
-	; wait extra frame before drawing game over
-	; ensures there's enough time to draw and avoids disabling screen
-	call WaitVBlank
-
 	; display game over message
 	call DrawGameOver
 

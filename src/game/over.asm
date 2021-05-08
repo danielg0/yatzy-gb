@@ -7,13 +7,26 @@ SECTION "Over", ROM0
 ; draw's over the game roll and held columns, whilst preserving the scored
 ; categories, their values as well as the score and highscore columns
 DrawGameOver::
+	; copying of string to screen is inlined to save cycles
+
 	AT _SCRN0, 1, 1
-	ld de, LINE1
-	call Strcpy
+DEF I = 0
+REPT 18
+; strings in rgbds are one-indexed
+DEF I = I + 1
+	; take a single character from LINE1
+	ld a, STRSUB("GAME  A - NEW GAME", I, 1)
+	; draw to screen
+	ldi [hl], a
+ENDR
 
 	AT _SCRN0, 1, 2
-	inc de				; ld de, LINE2
-	call Strcpy
+DEF I = 0
+REPT 14
+DEF I = I + 1
+	ld a, STRSUB("OVER  B - MENU", I, 1)
+	ldi [hl], a
+ENDR
 
 	ret
 
@@ -34,13 +47,4 @@ REPT 18
 ENDR
 
 	ret
-
-SECTION "Over Data", ROM0
-
-; Game over message
-; displayed at 1, 1
-LINE1:
-	DB "GAME  A - NEW GAME", 0
-LINE2:
-	DB "OVER  B - MENU", 0
 
