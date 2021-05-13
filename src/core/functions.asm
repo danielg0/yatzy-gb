@@ -8,7 +8,109 @@ W_BUTT:: DS 1				;    ""    current button press state
 W_DPAD_OLD:: DS 1			;    ""    previous state of dpad
 W_BUTT_OLD:: DS 1			;    ""    previous button press state
 
+; highscore
+W_HIGHSCORE:: DS 2			; two bytes holding highscore as bcd
+					; low byte (tens and units) first
+
 SECTION "Functions", ROM0
+
+; Read highscore variable from external RAM
+; in ram, highscore is ordered with the lower nibbles first
+; ie. tens, units, thousands, hundreds
+; in external ram, the values are also in this order, but each nibble is in its
+; own byte, located in the 4 low bits (in order to have compatibility with MBC2)
+; of the first 4 bytes from $A000 onward
+ReadHighscore::
+	ld hl, _SRAM
+	ld de, W_HIGHSCORE
+
+	; enable ram
+	ld a, $0A
+	ld [rRAMG], a
+
+	; read in score from external RAM
+	; as doing so, check that what is read is valid. As max score is 374,
+	; the thousands digit must be 0, the hundreds less than 4, and the next
+	; two must be less than 9 as the highscore is stored as a BCD
+
+	; read first byte highscore from low nibble of RAM
+	ld a, [hli]
+	and $0F				; only read low nibble
+	cp 10
+	jr nc, .invalid			; tens digit must be less than 10
+	swap a
+	ld b, a
+	ld a, [hli]
+	and $0F
+	cp 10				; units digit must be less than 10
+	jr nc, .invalid
+	or a, b
+	ld [de], a
+
+	; first byte written, prepare to write to second byte of W_HIGHSCORE
+	inc de
+
+	ld a, [hli]
+	and $0F
+	jr nz, .invalid			; thousands digit must be 0
+	swap a
+	ld b, a				; save a
+	ld a, [hl]			; no need to increment
+	and $0F
+	cp 4
+	jr nc, .invalid			; hundreds digit must be less than 4
+	or a, b				; combine with first read nibble
+	ld [de], a
+
+	; disable ram
+	xor a				; ld a, $00
+	ld [rRAMG], a
+
+	ret
+
+.invalid
+	; if saved highscore is invalid, save a score of zero
+	ld hl, W_HIGHSCORE
+	xor a				; ld a, $00
+	ld [hli], a
+	ld [hl], a
+
+	; call WriteHighscore (RAM already enabled)
+	jr WriteHighscore.noEnableRAM
+
+; Write highscore variable to external RAM
+WriteHighscore::
+	; enable ram
+	ld a, $0A
+	ld [rRAMG], a
+
+.noEnableRAM
+	ld hl, _SRAM
+	ld de, W_HIGHSCORE
+
+	ld a, [de]
+	and $F0
+	swap a
+	ld [hli], a
+	ld a, [de]
+	and $0F
+	ld [hli], a
+
+	inc de
+
+	ld a, [de]
+	and $F0
+	swap a
+	ld [hli], a
+	ld a, [de]
+	and $0F
+	ld [hl], a			; no need for increment
+
+	; disable ram
+	ld a, $0A
+	ld [rRAMG], a
+
+	ret
 
 ; Read joypad and write input to memory
 ; Credit to bitnenfer - I've made a change where the io registers are read

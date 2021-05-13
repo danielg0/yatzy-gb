@@ -246,9 +246,8 @@ ENDR
 
 	ret
 
-; draw highscores and current game score to the screen
-; note: don't confuse with DrawScores (maybe swap them at some point)
-DrawHighscores:
+; draw current game score, singles sum and bonus to the screen
+DrawCurrentScores:
 	AT _SCRN0, 14, 14		; load pos of score zone into hl
 
 	ld a, [W_SCORE + 1]		; load hundreds column into a
@@ -338,6 +337,49 @@ DrawHighscores:
 	; jump back to earlier to draw the bonus score
 	; if sum >= 100, bonus (63) must have already been scored
 	jr .drawBonus
+
+; draw score to the screen
+DrawHighscore::
+	; store address of W_HIGHSCORE in hl
+	ld de, W_HIGHSCORE + 1
+
+	; get hundreds column of highscore
+	ld a, [de]
+	dec de				; ld hl, W_HIGHSCORE
+	or a				; set flags based on value of a
+	jr z, .checkTens		; if zero, don't draw
+
+	; as hundreds non-zero, draw to screen
+	add a, $30			; convert to ascii
+	AT _SCRN0, 14, 15
+	ld [hl], a
+	jr .drawTens			; as hundreds present, always draw tens
+
+.checkTens
+	ld a, [de]
+	and $F0
+	swap a
+	jr z, .drawUnits		; if tens not present, draw units
+	jr .drawTensLoaded		; skip loading tens unit if already done
+
+.drawTens
+	ld a, [de]
+	and $F0
+	swap a
+
+.drawTensLoaded
+	add a, $30
+	AT _SCRN0, 15, 15
+	ld [hl], a
+
+.drawUnits
+	ld a, [de]
+	and $0F
+	add a, $30
+	AT _SCRN0, 16, 15
+	ld [hl], a
+
+	ret
 
 ; draw a text prompt asking the player to press a
 ; must be called during vblank period
@@ -571,7 +613,54 @@ GameAction::
 .noCarry
 
 	; write score to screen
-	call DrawHighscores
+	call DrawCurrentScores
+
+	; if new score is greater than highscore, increase highscore and redraw
+	ld de, W_SCORE + 1
+	ld hl, W_HIGHSCORE + 1
+	; compare hundreds column
+	ld a, [de]
+	cp [hl]
+
+	; for hundreds column:
+	; if highscore > score, the highscore doesn't need changing
+	; if highscore == score, the units column needs to be checked
+	; if highscore < score, the highscore needs to be changed
+	jr c, .noHighscoreChange	; if highscore > score, c set
+	; decrement hl and de in preperation to either check units or change the
+	; highscore. This WONT affect the flags, so the comparision still works
+	dec hl
+	dec de
+	jr z, .checkUnits		; if highscore == score, z set
+	jr .highscoreChange		; if we're here, highscore < score
+
+.checkUnits
+	; de and hl already point at units columns
+	; however, switch around whats being compared so only needs a single jr
+	ld a, [de]
+	ld b, a
+	ld a, [hl]
+	cp b
+
+	; for units column:
+	; if highscore >= score, don't change highscore
+	; else, change highscore
+	jr nc, .noHighscoreChange	; if highscore >= score, c reset
+	; else, fallthrough to highscore change
+
+.highscoreChange
+	; de and hl both point at units column
+	; copy score to highscore
+	ld a, [de]
+	ld [hli], a
+	inc de
+	ld a, [de]
+	ld [hl], a
+
+	call WriteHighscore
+	call DrawHighscore
+
+.noHighscoreChange
 
 	; reset game to pre-roll state
 	; move cursor back next to roll button
@@ -1013,7 +1102,7 @@ LABEL_TEXT:
 
 	DB "BON:", 0			; AT(2, 12)
 	DB "SCORE:", 0			; AT(3, 14)
-	DB "HIGHSCORE:   0", 0		; AT(3, 15)
+	DB "HIGHSCORE:", 0		; AT(3, 15)
 
 
 ; Cursor location lookup table

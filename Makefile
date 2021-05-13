@@ -37,6 +37,8 @@ fix: $(OUT).gb
 	--game-id "DG0 " \
 	--old-licensee 51 \
 	--pad-value 0xff \
+	--mbc-type "MBC1+RAM+BATTERY" \
+	--ram-size 0x02 \
 	$(OUT).gb
 
 $(OUT).map $(OUT).sym $(OUT).gb: $(OBJFILE)

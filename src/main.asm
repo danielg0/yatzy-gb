@@ -75,6 +75,10 @@ Setup:
 	; setup first game so all graphics are present for transition
 	call SetupGame
 
+	; load highscore from RAM
+	call ReadHighscore
+	call DrawHighscore
+
 	; enable screen
 	ld hl, rLCDC
 	set 7, [hl]
