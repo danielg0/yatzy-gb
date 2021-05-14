@@ -7,17 +7,26 @@ A version of the dice game Yatzy for the Nintendo Game Boy
 
 ## Running
 
-Yatzy-GB should run in all emulators (I have yet to find any that don't) and,
-though I haven't had a chance to try it out, I'm fairly confident it should work
-on real hardware. If you do run into problems, feel free to make an issue.
+A pre-built ROM is available in the ![releases](releases) tab.
 
-A pre-built ROM is available in the releases tab.
+Yatzy-GB has run in all Gameboy/Gameboy Color emulators I've tested as well as
+on real hardware using flash cartridges. 32KB flash cartridges without an MBC
+work, though to save highscores a flash cartridge with external RAM is needed -
+carts with MBC1, 2, 3 and 5 should all work in theory, though I've only tested
+[this](https://shop.insidegadgets.com/product/gameboy-512kb-32kb-fram-flash-cart-custom-boot-logo-option/)
+512KB MBC5 cart from insideGadgets.
+
+If you do run into any problems, feel free to make an issue.
 
 ## Rules & Controls
 
-**DPAD** - Move the cursor (the `>` character)
+**DPAD**	- Move the cursor (the `>` character)
 
-**A**    - Press a button/Score a category/Toggle whether a die is held
+**A**		- Press a button/Score a category/Toggle whether a die is held
+
+**B**		- Return to Menu (from the Game Over screen)
+
+**START**	- Start game (from the Menu)
 
 Yatzy has rules similar to Yacht and Yahtzee. You roll five dice and can then
 reroll some or all of them twice. To pick which dice to 'hold' on to (ie. not
