@@ -13,8 +13,7 @@ Yatzy-GB has run in all Gameboy/Gameboy Color emulators I've tested as well as
 on real hardware using flash cartridges. 32KB flash cartridges without an MBC
 work, though to save highscores a flash cartridge with external RAM is needed -
 carts with MBC1, 2, 3 and 5 should all work in theory, though I've only tested
-[this](https://shop.insidegadgets.com/product/gameboy-512kb-32kb-fram-flash-cart-custom-boot-logo-option/)
-512KB MBC5 cart from insideGadgets.
+[this][1] 512KB MBC5 cart from insideGadgets.
 
 If you do run into any problems, feel free to make an issue.
 
@@ -40,25 +39,24 @@ have to use a category once you've used both rerolls and can only use each
 category once. A star is displayed next to categories you have already scored.
 
 For a full ruleset and complete listing of categories, see the [Wikipedia page
-for Yatzy](https://wikipedia.org/wiki/Yatzy).
+for Yatzy][2].
 
 ## Building
 
-Requires [RGBDS](https://github.com/gbdev/rgbds) to be installed and in your
-`$PATH`. Built using v0.5.0 - older versions may work, but I haven't tested
-them. The provided `Makefile` works on Linux, though I haven't had the chance
-to test on either MacOS or Windows.
+Requires [RGBDS][3] to be installed and in your `$PATH`. Built using v0.5.0 -
+older versions may work, but I haven't tested them. The provided `Makefile`
+works on Linux, though I haven't had the chance to test on either MacOS or
+Windows.
 
 To build, run `make all` while in the repository root, the final ROM, `yatzy.gb`
 will be in the `bin/` directory. `make clean` will remove the `bin/` directory
 and `make run` will run the built ROM using an emulator.
 
-The default emulator used by `make run` is
-[Sameboy](https://github.com/LIJI32/SameBoy), though this can be configured to
-be any command by changing line 15 in the `Makefile` or by specifying it in the
-`make` command. The path of the ROM will be appended to the command specified.
-For instance, to copy the built ROM into a different directory, change the
-value in the `Makefile` to:
+The default emulator used by `make run` is [Sameboy][4], though this can be
+configured to be any command by changing line 15 in the `Makefile` or by
+specifying it in the `make` command. The path of the ROM will be appended to the
+command specified. For instance, to copy the built ROM into a different
+directory, change the value in the `Makefile` to:
 
 ```
 EMU	:= cp -t /path/to/roms
@@ -87,7 +85,7 @@ make clean; make RNG=27659
 `inc/hardware.inc`
 
 Credit and thanks go to the GBDev community for this file. The original can be
-found [here](https://github.com/gbdev/hardware.inc).
+found [here][5].
 
 `src/core/rand.asm`
 `src/core/bcd.asm`
@@ -95,7 +93,14 @@ found [here](https://github.com/gbdev/hardware.inc).
 Credit and thanks for both of these source files go to Damian Yerrick. I've made
 no modifications other than to change the file ending from `.z80` to `.asm`.
 The original files can be found
-[here](https://github.com/pinobatch/240p-test-mini).
+[here][6].
 
 Many thanks to the GBDev community for all the great resources and tutorials.
+
+[1]: https://shop.insidegadgets.com/product/gameboy-512kb-32kb-fram-flash-cart-custom-boot-logo-option
+[2]: https://wikipedia.org/wiki/Yatzy
+[3]: https://github.com/gbdev/rgbds
+[4]: https://github.com/LIJI32/SameBoy
+[5]: https://github.com/gbdev/hardware.inc
+[6]: https://github.com/pinobatch/240p-test-mini
 
