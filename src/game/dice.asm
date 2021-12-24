@@ -119,7 +119,7 @@ ENDR
 
 	; generate dices rolls for the five dice if the corresponding bit of
 	; DICE_HELD isn't set
-I_DIE SET 0
+I_DIE = 0
 REPT 5
 	; check if held bit set for this die
 	ld a, [DICE_HELD]
@@ -147,7 +147,7 @@ REPT 5
 .update_score_\@
 	call UpdateDice			; update score values
 
-I_DIE SET I_DIE + 1
+I_DIE = I_DIE + 1
 ENDR
 
 	; update score variables

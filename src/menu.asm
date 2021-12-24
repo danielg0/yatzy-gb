@@ -15,13 +15,13 @@ LoadMenuTiles::
 ; Load screen one with tiles
 ; screen must be off
 LoadMenuScreen::
-Y SET 0
+Y = 0
 REPT $12				; REPT menu_tile_height
 	AT _SCRN1, 0, Y
 	ld de, menu_map_data + Y * (menu_tile_map_size / menu_tile_map_height)
 	ld bc, menu_tile_map_size / menu_tile_map_height
 	call Memcpy
-Y SET Y + 1
+Y = Y + 1
 ENDR
 	ret
 

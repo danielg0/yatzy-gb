@@ -192,10 +192,10 @@ DrawScores::
 	ld c, [hl]
 
 	; create variable to track which bit of c is being used
-C_BIT SET 0
+C_BIT = 0
 
 	; singles - track y coord using Y variable
-Y SET 4
+Y = 4
 REPT 6
 	bit C_BIT, c			; if bit is 1, category has been used
 	jr nz, .next_\@			; if category already used, don't draw
@@ -204,13 +204,13 @@ REPT 6
 	call BCDcpy
 .next_\@
 	inc de				; get address of score for next iter
-C_BIT SET C_BIT + 1			; move to next bit of c
-Y SET Y + 1				; draw next score in row below
+C_BIT = C_BIT + 1			; move to next bit of c
+Y = Y + 1				; draw next score in row below
 ENDR
 
 
 	; left-hand side, using first byte of c
-Y SET 4
+Y = 4
 REPT 2
 	bit C_BIT, c
 	jr nz, .next_\@
@@ -219,13 +219,13 @@ REPT 2
 	call BCDcpy
 .next_\@
 	inc de
-C_BIT SET C_BIT + 1
-Y SET Y + 1
+C_BIT = C_BIT + 1
+Y = Y + 1
 ENDR
 
 
 	; reset C_BIT and load second byte of W_USED_SCORES into c
-C_BIT SET 0
+C_BIT = 0
 	ld hl, W_USED_SCORES + 1
 	ld c, [hl]
 
@@ -240,8 +240,8 @@ REPT 7
 	call BCDcpy
 .loop_\@
 	inc de
-Y SET Y + 1
-C_BIT SET C_BIT + 1
+Y = Y + 1
+C_BIT = C_BIT + 1
 ENDR
 
 	ret
@@ -416,7 +416,7 @@ DrawHeld:
 	; load in position of first dice
 	AT _SCRN0, 8, 2
 
-I_DIE SET 0
+I_DIE = 0
 REPT 5
 	; if ith of a is set, write "*", else write " "
 	bit I_DIE, a
@@ -430,7 +430,7 @@ REPT 5
 	; increment hl twice as that's the gap between dice
 	inc hl
 	inc hl
-I_DIE SET I_DIE + 1
+I_DIE = I_DIE + 1
 ENDR
 
 	ret
